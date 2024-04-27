@@ -1,4 +1,7 @@
 /*
+NAME: SWADHA SWAROOP
+ROLL: 112201009
+
 	Course:		CS2024 DSA Lab 
 	Semester:	2024 Jan-Apr
 	Lab:		02
@@ -10,11 +13,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>	// Needed for malloc, free etc
+#include <time.h>
 
 typedef struct {
 	char* data;	// Pointer to the start of array. Space will be allocated by init()
 	int size;	// Max size of queue
 	int rear;	// Index of next empty location 
+	int front;
 } Queue;
 
 /* Initialize a stack */
@@ -26,6 +31,7 @@ void init(Queue* q, int size) {
 	}
 	q->size = size;
 	q->rear = 0;	// index of next empty location 
+	q->front =0;
 }
 
 /* 	### Enqueue function 
@@ -33,17 +39,31 @@ void init(Queue* q, int size) {
 		- On success: returns 0
 		- On error: Message to stderr and returns -1
 */
+// int enqueue(Queue* q, char c) {
+// 	if (q->rear >= q->size) {
+// 		fprintf(stderr, "Queue Overflow\n");
+// 		return -1;
+// 	}
+// 	q->data[q->rear++]=c;
+// 	/* Task 5a.
+// 		Fill in the required statements
+// 	*/
+// 	return 0;
+// }
+
 int enqueue(Queue* q, char c) {
-	if (q->rear >= q->size) {
+	if ((q->rear == q->size) && (q->front==0)) {
 		fprintf(stderr, "Queue Overflow\n");
 		return -1;
 	}
-
-	/* Task 5a.
-		Fill in the required statements
-	*/
-	
-
+	else if (q->rear+1==q->front) {
+		fprintf(stderr, "Queue Overflow\n");
+		return -1;
+	}
+	else if ((q->rear == q->size) && (q->front!=0)){
+		q->rear = 0;
+	}
+	q->data[q->rear++]=c;
 	return 0;
 }
 
@@ -53,22 +73,81 @@ int enqueue(Queue* q, char c) {
 			(and shifts everyone in the queue one step forward)
 		- On error: Message to stderr and returns '$'
 */
+// char dequeue(Queue *q) {
+// 	char head;
+// 	if (q->rear <= 0) {
+// 		fprintf(stderr, "Queue Empty\n");
+// 		return '$';
+// 	}
+// 	/* Task 5b.
+// 		Fill in the missing statements 
+// 	*/
+// 	head = q->data[0];
+// 	q->rear--;
+// 	for (int i = 0; i < q->rear; i++)
+// 		q->data[i] = q->data[i+1];
+// 	return head;
+// }
+
 char dequeue(Queue *q) {
-	char head;
-	if (q->rear <= 0) {
+	if (q->rear == q->front) {
 		fprintf(stderr, "Queue Empty\n");
 		return '$';
 	}
-	/* Task 5b.
-		Fill in the missing statements 
-	*/
-	head = 
-	q->rear--;
-	for (int i = 0; i < q->rear; i++)
-		q->data[i] = q->data[i+1];
+if(q->front >= q->size){
+	q->front=0;
+}
+	char head = q->data[q->front++];
 	return head;
 }
-	
+
+int is_empty(Queue q){
+	if (q.rear == q.front) {
+		fprintf(stderr, "Queue Empty\n");
+		return 1;
+}
+return 0;
+}
+
+int is_full(Queue q){
+	if (((q.rear == q.size) && (q.front==0))||(q.rear+1==q.front)) {
+		fprintf(stderr, "Queue Overflow\n");
+		return 1;
+	}
+    return 0;
+}
+
+void print_queue(Queue q){
+	while(q.front != q.rear){
+		printf("% c",q.data[q.front++]);
+	}
+	printf("\n");
+}
+
+void simulate_buffer() {
+	Queue q;
+	int data, flag, drops = 0;
+	const int t_steps = 10000;
+	init(&q, 10);		// Initialize the Queue
+	srand(time(0));
+	for(int t = 0; t < t_steps; t++) {
+		if (rand() % 5 == 0) {	
+			flag = enqueue(&q, t); // enqueue a request
+			printf("Request enqueued at time %d\n", t);
+			if(flag == -1)
+				drops++;
+		}
+		if (t % 6 == 5) { 
+			data = dequeue(&q);
+			printf("Request at time %i serviced at time %d\n", data, t);
+		}
+	}
+	printf("\n============================================\n");
+	printf("Number of dropped requests = %d (%.2f)\n", drops, 100.0 * drops/t_steps);
+	printf("============================================\n");
+}
+
+
 int main() {
 	Queue q;
 	int i, flag;
@@ -82,6 +161,9 @@ int main() {
 			break;
 		printf("Enqueued %c\n", 'a'+i);
 	}
+	print_queue(q);
+	is_empty(q);
+	is_full(q);
 
 	for(i = 0;; i++) {
 		c = dequeue(&q);
@@ -91,7 +173,11 @@ int main() {
 		}
 		printf("Dequeued %c\n", c);
 	}
+	print_queue(q);
+	is_empty(q);
+	is_full(q);
 
+	simulate_buffer();
 	return 0;
 }
 
