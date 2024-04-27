@@ -41,7 +41,7 @@ int main()
 	*/
 	// for(i = 0; i < len; i++)
 	// 	printf("%d\n", a[i]);
-
+    printf("Reverse \n");
 	for(i = len-1; i >=0; i--){
 		printf("%d ", a[i]);
 	}
@@ -59,7 +59,7 @@ int main()
 	    sum = sum+a[i];
 	}
 	average=sum/len;
-	printf("Average: %f\n",average);
+	printf("\nAverage: %f\n",average);
 
 	int stdsum;
 	for (int i=0;i<len;i++){
@@ -169,9 +169,9 @@ int main()
 	for (int i=0; i<len; i++){
 		arr[a[i]]+=1;
 	}
-	int max=arr[0];
+	max=arr[0];
 	int k=0;
-	for (int i=1;i<len;i++){
+	for (int i=0;i<len;i++){
 		if (arr[i]>max){
 			max=arr[i];
 			k=i;
@@ -184,7 +184,7 @@ int main()
 		b) Print the array in sorted order*/
 
 		for(int i=0;i<len-1;i++){
-			for (int j=1;j<len;j++){
+			for (int j=i+1;j<len;j++){
 				if (a[i]>a[j]){
 					int temp=a[i];
 					a[i]=a[j];
@@ -210,7 +210,8 @@ int main()
 			cou+=1;
 		}
 	}
-	for(int y;y<cou;y++){
+	printf("\nUniqueness \n");
+	for(int y;y<=cou;y++){
 		printf("%d ",rep[y]);
 	}
 
