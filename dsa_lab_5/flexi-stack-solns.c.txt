@@ -1,0 +1,201 @@
+/*
+	Course:		CS2130 DSA Lab 
+	Semester:	2024 Jan-Apr
+	Lab:		Test 1 | 15/Feb/2024
+	Tasks:		1 and 2 (5 points each)
+	
+	Aim: 		Implement Flexi Stack ADT over the Array Data Structure
+	Assume:		All data to be stored are of type char
+*/
+
+#include <stdio.h>
+#include <stdlib.h>	// Needed for malloc, free etc
+
+#define MIN_SIZE 16 // Minimum size of the stack
+
+typedef struct {
+	char* data;	// Pointer to the start of array. Space will be allocated by init()
+	int size;	// Max size of stack
+	int top;	// Index of next empty location
+} Stack;
+
+/* Initialize a stack */
+void init(Stack* s) {
+	s->top = 0;	// index of next empty location 
+	s->size = MIN_SIZE;
+	s->data = (char*) malloc(s->size * sizeof(char));
+	if (s->data == NULL) {
+		fprintf(stderr, "Memory Allocation Failed\n");
+		exit(1);
+	}
+	else {
+		printf("A stack of size %d created successfully.\n", s->size);
+	}
+}
+
+/* Task 1.	Flexi Stack
+	-	Write the push and pop functions for a normal stack, test it and
+		get it evaluated (2 points)
+	-	A flexi stack is a stack whose size changes automatically depending
+		on the amount of data that is stored inside it.
+	-	Modify the push function to dynamically double the size of the array
+		data when one tries to push a character onto a full stack. (1 point)
+	-	Modify the pop function to dynamically half the size of the array
+		data when only less that half the size is in use. However the array
+		size should never fall below MIN_SIZE, which is 16. (1 point)
+	-	Hint. User realloc function in stdlib (man realloc)
+	-	1 point for proper comments and indentation
+*/
+
+/* 	Push function 
+	Exit behaviour:
+		- On success: returns 0
+		- On error: Message to stderr and returns -1
+*/
+int push(Stack* s, char c) {
+	if (s->top >= s->size) {
+		fprintf(stderr, "Stack Overflow\n");
+		return -1;
+	}
+
+	/* Task 1a.
+		Fill in the statements to add c to the stack and increment top	
+	*/
+
+	s->data[s->top] = c;
+	s->top++;
+	
+	return 0;
+}
+
+/* 	Pop function 
+	Exit behaviour:
+		- On success: returns the character on top of stack
+		- On error: Message to stderr and returns '$'
+*/
+char pop(Stack *s) {
+	if (s->top <= 0) {
+		fprintf(stderr, "Stack Empty\n");
+		return '$';
+	}
+	/* Task 1b.
+		Fill in the missing statements 
+	*/
+	
+	s->top--;
+	return(s->data[s->top]);
+}
+	
+/* Task 2.	Checking balanced parentheses with two types of parentheses.
+	-	Write a function which will take a string of normal and square opening
+		and closing parentheses - i.e. '(', ')', '[', and ']' - and check
+		whether every '(' has a matching ')' and vice-versa and whether every
+		'[' has a matching ']' and vice versa.
+	-	Hint. Use a stack - Push the openings. Pop and match the closings.
+	-	2 points if complete if for a single type of parentheses
+	-	2 points for both types
+	-	1 point for comments and indentation
+*/
+int is_balanced(char *test) {
+/*
+	Input 
+		-	A string (an array of characters terminated by the null character)
+	Action 
+		- 	Return 1 if the string is balanced, 0 otherwise
+*/
+
+// Task 2 Solution
+	Stack s;
+	init(&s);
+
+	int good = 1, flag = 0;
+	while(*test != 0) {
+		if(*test == '(' || *test == '[') {
+			flag = push(&s, *test);
+			if(flag == -1) {
+				printf("Push failed\n");
+				break;
+			}
+
+		}
+		else if(*test == ')') {
+			if(pop(&s) != '(') {
+				good = 0;
+				break;
+			}
+		}
+		else if(*test == ']') {
+			if(pop(&s) != '[') {
+				good = 0;
+				break;;
+			}
+		}
+		else {
+			good = 0;
+			break;
+		}
+		test++;
+	}
+	
+	return good;
+}
+
+
+/* 	All the testing for the tasks are included in the main. 
+	Uncomment them one by one after you code the corresponding tasks in order.
+*/
+int main() {
+	Stack s;
+	int i, flag;
+	char c;
+
+	init(&s);
+
+	// Testing push
+	printf("\nTesting Push\n");
+	printf("============\n");
+	for(i = 0; i < 26; i++) {
+		flag = push(&s, 'a'+i);
+		if(flag == -1)
+			break;
+		printf("Pushed %c\n", 'a'+i);
+	}
+
+	// Testing pop
+	printf("\nTesting Pop\n");
+	printf("===========\n");
+	for(i = 0;; i++) {
+		c = pop(&s);
+		if (c == '$') {
+			printf("Stack Empty\n");
+			break;
+		}
+		printf("Popped %c\n", c);
+	}
+
+	// Testing balanced parentheses
+	printf("\nTesting Balanced Parentheses\n");
+	printf("=========================\n");
+
+	#define NUM_TESTS 6
+	char* strings[NUM_TESTS] = {
+		"(())(()())",			// good
+		"[[]][[][]]",			// good
+		"([])[()[]]",			// good
+		"([])[()[])",			// bad
+		"[[()[]]]([()])",		// good
+		"[[]]([][])a",			// bad
+	};
+	
+	for(i =0; i < NUM_TESTS; i++) {
+		char* test = strings[i];
+		if(is_balanced(test))
+			printf("%s is balanced.\n", test);
+		else
+			printf("%s is not balanced.\n", test);
+	}
+	
+	return 0;
+}
+
+

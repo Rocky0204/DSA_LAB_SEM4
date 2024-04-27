@@ -1,0 +1,209 @@
+/*
+	Course:		CS2024 DSA Lab 
+	Semester:	2024 Jan-Apr
+	Lab:		02
+	Task Set:	02 (Tasks 5 to 8)
+	
+	Aim: 		Implement Queue ADT over Array Data Structure
+	Assume:		All data to be stored are integers
+*/
+
+#include <stdio.h>
+#include <stdlib.h>	// Needed for malloc, free etc
+#include <time.h>
+
+typedef struct {
+	int* data;	// Pointer to the start of array. Space will be allocated by init()
+	int size;	// Max size of queue
+	int rear;	// Index of the first empty location after the last item
+	int front;	// Index of the first item in the queue (and -1 when empty)
+
+} Queue;
+
+/* Initialize a stack */
+void init(Queue* q, int size) {
+	q->data = (int*) malloc(size * sizeof(int));
+	if (q->data == NULL) {
+		fprintf(stderr, "Memory Allocation Failed\n");
+		exit(1);
+	}
+	for(int i = 0; i < size; i++)
+		q->data[i] = 0;
+
+	q->size 	= size;
+	q->rear 	= 0;	// Index of the first empty location after the last item
+	q->front 	= -1;	// Index of the first item in the queue (-1 when empty)
+}
+
+/* Task 7.	Helper functions
+	-	Write the following helper functions for a queue
+		a) int is_empty(Queue q) which return 1 if q is empty and 0 if not
+		b) int is_full(Queue q) which return 1 if q is full and 0 if not
+		c) print_queue(Queue q) which prints the queue from front to rear
+		d) print_array(Queue q) which prints the queue from 0 to size-1
+		Note that we can use pass by value in these functions since they
+		do not modify the contents of the queue.
+*/
+
+/* A full print function for debugging */
+void print_array(Queue q) {
+	for(int i = 0; i < q.size; i++)
+		printf("| %2d ", q.data[i]);
+	printf("|\n");
+}
+
+/* 	### Checking if the queue is empty
+	Returns : 1 if empty, 0 otherwise
+*/
+int is_empty(Queue q) {
+	if (q.front == -1)
+		return 1;
+	else
+		return 0;
+}
+
+/* 	### Checking if the queue is full
+	Returns : 1 if full, 0 otherwise
+*/
+int is_full(Queue q) {
+	if (q.rear == q.front)
+		return 1;
+	else
+		return 0;
+}
+
+
+/* Task 6. 	Queue using circular indexing of two pointers
+	-	One main problem with the current implementation is that dequeue
+		needs to shift all the remaining elements in the array and this
+		is very inefficient.
+	-	Modify the implementation to use two indexes q->rear and q->front
+		together with a circular view of the array so that both enqueue and
+		dequeue can be done in O(1) time.
+	-	Warning: How do you identify the full and empty states of the queue?
+*/
+
+
+/* 	### Enqueue function 
+	Exit behaviour:
+		- On success: returns 0
+		- On error: Message to stderr and returns -1
+*/
+int enqueue(Queue* q, int data) {
+	if (is_full(*q)) {
+		fprintf(stderr, "Queue Overflow\n");
+		return -1;
+	}
+	/* 	If the queue was empty before this enqueue operation
+		reset the front pointer to 0 
+	*/
+	if (q->front == -1)
+		q->front = 0;
+
+	q->data[q->rear] = data;
+	q->rear = (q->rear + 1) % q->size;
+
+	return 0;
+}
+
+/* 	### Dequeue function 
+	Exit behaviour:
+		- On success: returns the character on the front of the queue
+			(and shifts everyone in the queue one step forward)
+		- On error: Message to stderr and returns '$'
+*/
+int dequeue(Queue *q) {
+	if (is_empty(*q)) {
+		fprintf(stderr, "Queue Empty\n");
+		return -1;
+	}
+	/* Task 5b.
+		Fill in the missing statements 
+	*/
+	int data = q->data[q->front]; 
+	q->data[q->front] = 0;
+	q->front = (q->front + 1) % q->size;
+
+	/* 	If the queue becomes empty after this enqueue operation
+		reset the front pointer to -1 to indicate an empty queue 
+	*/
+	if(q->front == q->rear)	{ 
+		q->front = -1;
+		q->rear  = 0;
+	}
+	
+	return data;
+}
+	
+void test_queue() {
+	Queue q;
+	int i, data, flag;
+
+	init(&q, 16);
+
+	for(i = 1; i < 50; i+=2) {
+		flag = enqueue(&q, i);
+		if(flag != -1) {
+			printf("Enqueued %2d. Present Queue Array  : ", i);
+			print_array(q);
+		}
+
+		flag = enqueue(&q, i+1);
+		if(flag != -1) {
+			printf("Enqueued %2d. Present Queue Array  : ", i+1);
+			print_array(q);
+		}
+
+		data = dequeue(&q);
+		printf("Dequeued %2d. Present Queue Array  : ", data);
+		print_array(q);
+	}
+}
+
+/* Task 8.	Buffering random service requests using a queue.
+	Write a function to model the following scenario.
+	 -  At each time-step a service request comes to a machine with 
+	 	probability p = 1/5.
+	-	The requests are stored in a buffer which can hold at most 10 requests
+	 -	The machine takes 6 time steps to service each request. After finishing
+	 	one requests it takes up the oldest pending request in the buffer.
+	 -	Run this simulation for 10,000 time steps and count how many requests
+	 	had to be dropped due to buffer overflow.
+*/
+
+void simulate_buffer() {
+	Queue q;
+	int data, flag, drops = 0;
+	const int t_steps = 10000;
+	
+	init(&q, 10);		// Initialize the Queue
+	srand(time(0));
+
+	for(int t = 0; t < t_steps; t++) {
+		if (rand() % 5 == 0) {	
+			// int returned by rand() is a multiple of 5 with probability 1/5
+			flag = enqueue(&q, t); // enqueue a request
+			printf("Request enqueued at time %d\n", t);
+			if(flag == -1)
+				drops++;
+		}
+		if (t % 6 == 5) { 
+			// service a request at every 6th time step
+			// print_array(q);
+			data = dequeue(&q);
+			printf("Request at time %i serviced at time %d\n", data, t);
+		}
+	}
+		
+	printf("\n============================================\n");
+	printf("Number of dropped requests = %d (%.2f \%)\n", drops, 100.0 * drops/t_steps);
+	printf("============================================\n");
+}
+
+int main() {
+	//test_queue();
+	simulate_buffer();
+	return 0;
+}
+
+
