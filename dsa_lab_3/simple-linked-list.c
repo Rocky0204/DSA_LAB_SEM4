@@ -1,4 +1,6 @@
 /*
+NAME: SWADHA SWAROOP
+ROLL: 112201009
 	Course:		CS2130 DSA Lab 
 	Semester:	2024 Jan-Apr
 	Lab:		03 | Linked Lists
@@ -66,7 +68,7 @@ sLL* insert_at_start(int data, sLL* list) {
 		2.	Returns NULL if the new node cannot be created
 */
 // Task 1 - Edit one line below to solve Task 1
-	sLL* new = NULL;
+	sLL* new = create_node(data,list);
 	if(new == NULL) {
 		fprintf(stderr, "Error: Insertion at start failed\n");
 		return NULL;
@@ -86,6 +88,23 @@ sLL* insert_at_start(int data, sLL* list) {
 		the new node at the appropriate position.
 */
 sLL* insert_at_pos(int data, sLL* list, unsigned int pos) {
+	sLL* new;
+	if(pos==0){
+		return insert_at_start(data,list);
+	}
+	sLL* ptr= list;
+	int i=1;
+	while((i<pos)&&(ptr->next != NULL)){
+		ptr=ptr->next;
+		i++;
+	}
+	if (ptr->next == NULL){
+		return list;
+	}
+	new = insert_at_start(data, ptr->next); 
+    // new->next=ptr->next;
+	ptr->next=new;
+	return list;
 /*
 	Inputs:
 		1. Data for the new node to be inserted
@@ -147,6 +166,19 @@ int get_from_start(sLL* list) {
 	-	Inputs, Actions and Error Responses have to be as in the comments below.
 */
 int get_from_pos(sLL* list, unsigned int pos) {
+	if(pos==0){
+		return get_from_start(list);
+	}
+	sLL* ptr= list;
+	int i=0;
+	while((i<pos)&&(ptr->next != NULL)){
+		ptr=ptr->next;
+		i++;
+	}
+	if (ptr->next == NULL){
+		return -1;
+	}
+	return ptr->data;
 /*
 	Inputs
 		1. 	A list 
@@ -169,6 +201,16 @@ int get_from_pos(sLL* list, unsigned int pos) {
 	-	Inputs, Actions and Error Responses have to be as in the comments below.
 */
 unsigned int find(int data, sLL* list) {
+	int i =0;
+	sLL* ptr=list;
+	while(ptr->next !=NULL){
+		if (ptr->data == data){
+			return i;
+		}
+		ptr=ptr->next;
+		i++;
+	}
+	return -1;
 /*
 	Inputs
 		1. 	The data to search for
@@ -223,6 +265,23 @@ sLL* delete_first(sLL* list) {
 	-	Inputs, Actions and Error Responses have to be as in the comments below.
 */
 sLL* delete_at_pos(sLL* list, unsigned int pos) {
+	if(pos==0){
+		return delete_first(list);
+	}
+	sLL* ptr= list;
+	int i=1;
+	while((i<pos)&&(ptr->next != NULL)){
+		ptr=ptr->next;
+		i++;
+	}
+	if (ptr->next != NULL){
+		ptr->next=ptr->next->next;
+	}
+	else{
+		ptr->next= NULL;
+	}
+	return list;
+
 /*
 	Inputs
 		1. 	A list
@@ -256,10 +315,12 @@ int main() {
 		print_list(list);
 	}	
 	printf("============================\n");
-
+	printf("\n TASKE1 \n");
+    print_list(list);
+	printf("\n");
 
 	// Test for Task 2: insert_at_pos()
-	/*
+	
 	printf("Testing Task 2: insert_at_pos()\n");
 	for(i = 0; i < 10; i++) {
 		list = insert_at_pos(i, list, i);
@@ -271,29 +332,31 @@ int main() {
 		printf("NULL pointer returned.\n");
 	}
 	printf("============================\n");
-	*/
 
+printf("\n TASKE2 \n");
+    print_list(list);
+	printf("\n");
 
 	// Test for Task 3: get_from_pos()
-	/*
+	
 	printf("Testing Task 3: get_from_pos()\n");
 	print_list(list);
 	for(i = 0; i < 25; i += 4)
 		printf("Data at pos %d is %d\n", i, get_from_pos(list, i));
 	printf("============================\n");
-	*/
+
 
 	// Test for Task 4: find()
-	/*
+	
 	printf("Testing Task 4: find()\n");
 	print_list(list);
 	for(i = 0; i < 16; i+=3)
 		printf("Position of %d is %d\n", i, find(i, list)); 
 	printf("============================\n");
-	*/
+	
 
 	// Test for Task 5: delete_at_pos()
-	/*
+	
 	printf("Testing Task 5: delete_at_pos()\n\n");
 	print_list(list);
 	for(i = 0; i < 20; i += 5) {
@@ -307,8 +370,5 @@ int main() {
 		printf("NULL pointer returned.\n");
 	}
 	printf("============================\n");
-	*/
-
-	free(list);
 	return 0;
 }
