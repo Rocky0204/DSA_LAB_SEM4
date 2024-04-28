@@ -83,8 +83,18 @@ sortedLL* insert(int data, sortedLL* list) {
 		2.	Returns NULL if the new node cannot be created
 */
 // Task 1 Solution
-	
-	return list; // You may want to delete this.
+	sortedLL *node = list;
+	if (node == NULL || data <= node->data) {
+		return  create_node(data, node);
+		}
+	while(1) {
+		if (node->next == NULL || data <= node->next->data) {
+			sortedLL *new = create_node(data, node->next);
+			node->next = new;
+			return list;
+		}
+		node = node->next;
+	}
 }
 
 /* Task 2. 
@@ -110,9 +120,27 @@ sortedLL* delete(int data, sortedLL* list) {
 */
 	
 	// Task 2 Solution
-
-	return list; // You may want to delete this
-
+	if(list == NULL) {
+		fprintf(stderr, "Error: Attempt to delete from an empty list.\n");
+		return NULL;
+	}
+	sortedLL* node = list;
+	if (node->data == data) {
+		list = list->next;
+		free(node);
+		return list;
+	}
+	while(node->next != NULL && node->data < data) {
+		if (node->next->data == data) {
+			sortedLL *node_to_del = node->next;
+			node->next = node->next->next;
+			free(node_to_del);
+			return list;
+		}
+		node = node->next;	
+	}
+	fprintf(stderr, "Error: Attempt to delete missing data.\n");
+	return list;
 }
 
 int find(int data, sortedLL* list) {

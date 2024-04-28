@@ -1,4 +1,7 @@
 /*
+NAME: SWADHA SWAROOP
+ROLL: 112201009
+
 	Course:		CS2130 DSA Lab 
 	Semester:	2024 Jan-Apr
 	Lab:		04 | Set ADT on Sorted Link List Data Structure
@@ -69,7 +72,9 @@ set* add(int item, set* S) {
 			the added item is the new smallest item)
 */
 	// Task 3 Solution
-
+if (find(item, S) == -1) {
+		S = insert(item, S);
+	}
 
 	return S;
 }
@@ -93,7 +98,9 @@ set* rem(int item, set* S) { // the name remove is already used by a funciton in
 			set pointer is returned.
 */
 	// Task 4 Solution
-
+	if (find(item, S) != -1) {
+		S = delete(item, S);
+	}
 	return S;
 }
 
@@ -116,10 +123,62 @@ set* uni(set* S, set* T) { // the name union is a reserved keyword
 				This means you create U in order (without needing any insert 
 				in the middle)
 */
-	set *U = empty_set();
-	// Task 5 Solution
+if(S == NULL && T == NULL)	// both sets empty
+		return NULL;
+	if(S == NULL || T->data < S->data)
+		return create_node(T->data, uni(S, T->next)); 	
+	if(T == NULL || S->data < T->data) 
+		return create_node(S->data, uni(S->next, T)); 	
+	if (S->data == T->data)
+		return create_node(S->data, uni(S->next, T->next)); 
 
-	return U;
+
+	// // Task 5 Iterative Solution
+	// set *U = empty_set();
+	// /*
+	// Current is used to denote the last item added to U. When U is empty then current is NULL. 
+	// */
+	// sortedLL *new, *current = NULL;
+	// while(S != NULL || T != NULL) {
+	// 	if(S == NULL || (T != NULL && T->data < S->data)) {
+	// 		new =  create_node(T->data, NULL); 	
+	// 		if(current != NULL){   // U is not empty
+	// 			current->next = new;
+	// 			current = new;
+	// 		}
+	// 		else {   // U is empty
+	// 			current = new;
+	// 			U = current;
+	// 		}
+	// 		T = T->next;
+	// 	}	
+	// 	else if(T == NULL || S->data < T->data) {
+	// 		new =  create_node(S->data, NULL); 	
+	// 		if(current != NULL){   // U is not empty
+	// 			current->next = new;
+	// 			current = new;
+	// 		}
+	// 		else {   // U is empty
+	// 			current = new;
+	// 			U = current;
+	// 		}
+	// 		S = S->next;
+	// 	}
+	// 	else if(S->data == T->data) {
+	// 		new =  create_node(S->data, NULL); 	
+	// 		if(current != NULL){   // U is not empty
+	// 			current->next = new;
+	// 			current = new;
+	// 		}
+	// 		else {   // U is empty
+	// 			current = new;
+	// 			U = current;
+	// 		}
+	// 		S = S->next;
+	// 		T = T->next;
+	// 	}
+	// }
+	// return U;
 }
 
 /* Task 6. 
@@ -141,10 +200,39 @@ set* inter(set* S, set* T) { // the name int is a reserved keyword
 				This means you create U in order (without needing any insert 
 				in the middle)
 */
-	set *U = empty_set();
-	// Task 6 Solution
+	if(S == NULL || T == NULL)	// both sets empty
+		return NULL; // return empty set
+	if(T->data < S->data) 
+		return inter(S, T->next);	
+	if(S->data < T->data) 
+		return inter(S->next, T); 	
+	if(S->data == T->data)
+		return create_node(S->data, inter(S->next, T->next)); 	
 
-	return U;
+// // Task 6 Iterative Solution
+// 	set *U = empty_set();
+// 	/*
+// 	Current is used to denote the last item added to U. When U is empty then current is NULL. 
+// 	*/
+// 	sortedLL *new, *current = NULL;
+// 	while( S != NULL && T != NULL) {
+// 		if(S->data == T->data) {
+// 			new = create_node(S->data, NULL); 
+// 			S = S->next;
+// 			T = T->next;
+// 			if(current != NULL){   // U is not empty
+// 				current->next = new;
+// 				current = new;
+// 			}
+// 			else {   // U is empty
+// 				current = new;
+// 				U = current;
+// 			}
+// 		}	
+// 		else if(S->data < T->data)  S = S->next;
+// 		else T = T->next;
+// 	}
+// 	return U;
 }
 
 /* Task 7. 
@@ -166,10 +254,56 @@ set* diff(set* S, set* T) {
 				This means you create U in order (without needing any insert 
 				in the middle)
 */
-	set *U = empty_set();
-	// Task  7 Solution
+	if(S == NULL)	// S empty
+		return NULL; // return empty set
+	if(T == NULL || T->data > S->data) 
+		return create_node(S->data, diff(S->next, T)); 	
+	if(T->data == S->data) 
+		return diff(S->next, T->next);	
+	if(T->data < S->data) 
+		return diff(S, T->next);
 
-	return U;
+	// 	// Task 7 Iterative Solution
+	// set *U = empty_set();
+	// /*
+	// Current is used to denote the last item added to U. When U is empty then current is NULL. 
+	// */
+	// sortedLL *new, *current = NULL;
+	// while(S != NULL && T != NULL) {
+	// 	if(S->data == T->data) {
+	// 		S = S->next;
+	// 		T = T->next;
+	// 	}
+	// 	else if(S->data > T->data) {
+	// 		T = T->next;
+	// 	}
+	// 	else {
+	// 		new = create_node(S->data, NULL); 
+	// 		S = S->next;
+	// 		if(current != NULL){   // U is not empty
+	// 			current->next = new;
+	// 			current = new;
+	// 		}
+	// 		else {   // U is empty
+	// 			current = new;
+	// 			U = current;
+	// 		}				
+	// 	}
+	// }
+    //     while(S != NULL) {
+    //     		new = create_node(S->data, NULL); 
+	// 		S = S->next;
+	// 		if(current != NULL){   // U is not empty
+	// 			current->next = new;
+	// 			current = new;
+	// 		}
+	// 		else {   // U is empty
+	// 			current = new;
+	// 			U = current;
+	// 		}				
+		
+    //     }
+	// return U;	
 }
 
 /* Task 8 
@@ -192,10 +326,79 @@ set* symdiff(set* S, set* T) {
 				This means you create U in order (without needing any insert 
 				in the middle)
 */
-	set *U = empty_set();
-	// Task  8 Solution
+	if(S == NULL && T == NULL)	
+		return NULL; // return empty set
+	if(T == NULL || (T->data > S->data)) 
+		return create_node(S->data, symdiff(S->next, T)); 	
+	if(S == NULL || S->data > T->data) 
+		return create_node(T->data, symdiff(S, T->next)); 	
+	if(T->data == S->data) 
+		return symdiff(S->next, T->next);	
 
-	return U;
+//    // Task 8 Iterative Solution
+// 	set *U = empty_set();
+// 	/*
+// 	Current is used to denote the last item added to U. When U is empty then current is NULL. 
+// 	*/
+// 	sortedLL *new, *current = NULL;
+// 	while(S != NULL && T != NULL) {
+// 		if(S->data == T->data) {
+// 			S = S->next;
+// 			T = T->next;
+// 		}
+// 		else if(S->data > T->data) {
+// 			new = create_node(T->data, NULL); 
+// 			T = T->next;
+// 			if(current != NULL){   // U is not empty
+// 				current->next = new;
+// 				current = new;
+// 			}
+// 			else {   // U is empty
+// 				current = new;
+// 				U = current;
+// 			}
+// 		}
+// 		else {
+// 			new = create_node(S->data, NULL); 
+// 			S = S->next;
+// 			if(current != NULL){   // U is not empty
+// 				current->next = new;
+// 				current = new;
+// 			}
+// 			else {   // U is empty
+// 				current = new;
+// 				U = current;
+// 			}				
+// 		}
+// 	}
+//         while(S != NULL) {
+//         		new = create_node(S->data, NULL); 
+// 			S = S->next;
+// 			if(current != NULL){   // U is not empty
+// 				current->next = new;
+// 				current = new;
+// 			}
+// 			else {   // U is empty
+// 				current = new;
+// 				U = current;
+// 			}				
+		
+//         }
+
+// 	while(T != NULL) {
+//         		new = create_node(T->data, NULL); 
+// 			T = T->next;
+// 			if(current != NULL){   // U is not empty
+// 				current->next = new;
+// 				current = new;
+// 			}
+// 			else {   // U is empty
+// 				current = new;
+// 				U = current;
+// 			}				
+		
+//         }
+// 	return U;
 }
 
 
@@ -212,36 +415,36 @@ void test_four_set_operations(set *S, set *T) {
 	set *U;
 
 	// Uncomment after completing Task 5 
-	/*
+	
 	U = uni(S,T);
 	printf("uni(S,T) \t = ");
 	print_set(U);
 	free_set(U);
-	*/
+	
 	
 	// Uncomment after completing Task 6
-	/*
+	
 	U = inter(S,T);
 	printf("inter(S,T) \t = ");
 	print_set(U);
 	free_set(U);
-	*/
+	
 
 	// Uncomment after completing Task 7
-	/*
+	
 	U = diff(S,T);
 	printf("diff(S,T) \t = ");
 	print_set(U);
 	free_set(U);
-	*/
+
 
 	// Uncomment after completing Task 8
-	/*
+
 	U = symdiff(S,T);
 	printf("symdiff(S,T) \t = ");
 	print_set(U);
 	free_set(U);
-	*/
+
 
 	printf("--------------------------\n");
 }
