@@ -1,6 +1,6 @@
 /*
-	Name:		<full name>
-	Roll No:	<roll number>
+	Name: SWADHA SWAROOP	<full name>
+	Roll No: 112201009	<roll number>
 	Course:		CS2130 DSA Lab 
 	Semester:	2024 Jan-Apr
 	Lab:		Week 9
@@ -95,6 +95,27 @@ int postfix_eval(char *str) {
 				val1 = pop_is(&valStack);
 				if(val1 == INT_MIN || val2 == INT_MIN) 
 					break;
+				switch (ta->op){
+					case '+':
+					result = val1+val2;
+					break;
+					case '-':
+					result = val1-val2;
+					break;
+					case '*':
+					result = val1*val2;
+					break;
+					case '/':
+					if (val2 != 0){
+						result = val1/val2;
+						break;
+					}
+					else{
+						break;
+					}
+					
+					
+				}
 				// Task 1. Solution (Switch cases for binary operators)
 				push_is(&valStack, result);
 			}
@@ -181,11 +202,52 @@ eTree* postfix_to_etree(char *str) {
 			eTree* new = create_node(*ta, NULL, NULL);
 			push_ps(&nodeStack, new);
 		}
+		else if (ta->type == operator){
+			if (ta->op =='~'){
+				node1= pop_ps(&nodeStack);
+				if (node1 == NULL){
+					fprintf(stderr, "Error: Invalid postfix expression\n");
+					return NULL;
+				}
+				eTree* new = create_node(*ta, NULL,node1);
+				push_ps(&nodeStack, new);
+			}
+			else{
+				node2 = pop_ps(&nodeStack);
+				node1 = pop_ps(&nodeStack);
+				if(node1 == NULL || node2 == NULL) {
+					fprintf(stderr, "Error: Invalid postfix expression\n");
+					return NULL;
+				}
+				eTree* new = create_node(*ta, node1, node2);
+				push_ps(&nodeStack, new);
+
+			}
+		}
+		ta++;
+	}
+	eTree* root = pop_ps(&nodeStack);
+	if(root->token.value == INT_MIN) {
+		fprintf(stderr, "Error: Invalid postfix expression\n");
+		return NULL;
 	}
 
 	free_ps(&nodeStack);
 
-	return NULL;  // You may want to edit this
+	if(root == NULL) {
+		fprintf(stderr, "Error in postfix_to_etree: Invalid postfix expression\n");
+		return NULL;
+	}
+
+	// Check if nodeStack has been completely processed 
+	// Otherwise the postfix expression is invalid
+	if(!isempty_ps(&nodeStack)) {
+		fprintf(stderr, "Error in postfix_to_etree: Invalid postfix expression\n");
+		return NULL;
+	}
+
+	return root;
+ // You may want to edit this
 }
 
 /* Task 3. Genrate a fully parenthesised infix expression from a given expression tree
@@ -200,6 +262,16 @@ void etree_to_infix(eTree *t) {
 		return;
 		
 	// Task 3. Solution
+	if (t->token.type == operator){
+		printf("(");
+	etree_to_infix(t->left);
+	printf("%c", t->token.op);
+	etree_to_infix(t->right);
+	printf(")");
+	}
+	else{
+		printf("%d", t->token.value);
+	}
 
 }
 
@@ -213,6 +285,17 @@ int etree_eval(eTree *t) {
 		fprintf(stderr, "Error in etree_eval: Trying to evaluate an empty tree\n");
 		return INT_MIN;
 	}
+	if (t->token.type == operand) {
+		return t->token.value;
+	}
+	switch (t->token.op) {
+		case '~': return - etree_eval(t->right);
+		case '+': return etree_eval(t->left) + etree_eval(t->right);
+		case '-': return etree_eval(t->left) - etree_eval(t->right);
+		case '*': return etree_eval(t->left) * etree_eval(t->right);
+		case '/': return etree_eval(t->left) / etree_eval(t->right);
+	}
+
 
 	// Task 4. Solution
 }

@@ -1,6 +1,6 @@
 /*
-	Name:		<full name>
-	Roll No:	<roll number>
+	Name: SWADHA SWAROOP	<full name>
+	Roll No: 112201009	<roll number>
 	Course:		CS2130 DSA Lab 
 	Semester:	2024 Jan-Apr
 	Lab:		Week 9
@@ -60,6 +60,8 @@ int infix_eval(char *str) {
 		1. Tokenise error:  "Error: Could not tokenise <str>. Returning <INT_MIN>.\n"
 		2. Evalution error: "Error in infix_eval: Invalid infix expression\n"
 */
+
+
 	Token*	ta = tokenise(str);
 	if(ta == NULL){
 		fprintf(stderr, "Error: Could not tokenise %s. Returning %d.\n", str, INT_MIN);
@@ -74,12 +76,84 @@ int infix_eval(char *str) {
 
 	iStack opStack;		// Integer stack can also hold characters
 	init_is(&opStack, numTokens);
+
+
+    // Task 5. Solution
+
+	int val1,val2,result;
+
+	while(ta->type != EoS){
+		if(ta->type == operand){
+			push_is(&valStack,ta->value);
+		}
+		else if(ta->type == parOpen){
+			push_is(&opStack,ta->op);
+		}
+		else if(ta->type == operator){
+			push_is(&opStack,ta->op);
+		}
+		else if(ta->type == parClose){
+			char op;
+			op=pop_is(&opStack);
+			if(op =='('){
+		
+			}
+			else if(op == '~'){
+				val1=pop_is(&valStack);
+
+				if(val1 == INT_MIN)
+					break;
+				
+					result=-val1;
+			}
+			else{
+				val2 = pop_is(&valStack);
+				val1 = pop_is(&valStack);
+
+				if(val1 == INT_MIN || val2 == INT_MIN) 
+					break;
+				switch(op){
+					case '+':
+						result= val1 + val2;
+						break;
+					case '-':
+						result= val1 - val2;
+						break;
+					case '*':
+						result= val1 * val2;
+						break;
+					case '/':
+					    if(val2 == 0){
+						result = INT_MAX;
+						}
+				        result= val1 / val2;
+						break;
+				}
+
+			}
+				push_is(&valStack,result);
+				char ops =pop_is(&opStack);
+
+				if(ops != '('){
+					break;
+				}
+					
+			
+		}
+		ta++;
+	}
+		result= pop_is(&valStack);
+
+		if(	ta->type != EoS || result == INT_MIN || !isempty_is(&valStack) || !isempty_is(&opStack)) {
+		fprintf(stderr, "Error in postfix_eval: Invalid postfix expression\n");
+		result = INT_MIN;
+	}
 	
-	// Task 5. Solution
+
 	free_is(&valStack);
 	free_is(&opStack);
 
-	return INT_MIN; // You may want to edit this
+	return result; // You may want to edit this
 }
 
 /* Task 6. Generate an expression tree from a given fully parenthesised infix expression
@@ -111,11 +185,71 @@ eTree* infix_to_etree(char *str) {
 	init_ps(&opStack, numTokens);
 	
 	// Task 6. Solution
+   
+    eTree* val1;
+	eTree* val2;
+	eTree* result;
+	
+	
+	while(ta->type != EoS){
+		if (ta->type == operand){
+			eTree* newnode = create_node( *ta,  NULL,  NULL);
+			push_ps(&nodeStack,newnode);
+		}
+		if(ta->type == parOpen){
+			eTree* newnode = create_node( *ta,  NULL,  NULL);
+			push_ps(&opStack,newnode);
+		}
+		if(ta->type == operator){
+			eTree* newnode = create_node( *ta,  NULL,  NULL);
+			push_ps(&opStack,newnode);
+		}
+		if(ta->type == parClose){
+			eTree* opnode=pop_ps(&opStack);
+			if(opnode->token.op =='('){
+		
+			}
+			
+			else if ( opnode->token.op == '~') {
+				val1 = pop_ps(&nodeStack);
+				if(val1 == NULL) 
+					break;
+				eTree* newnode =create_node( opnode->token,  NULL,  val1);
+				push_ps(&nodeStack, newnode);
+			}
+		    else {
+				val1 = pop_ps(&nodeStack);
+				val2 = pop_ps(&nodeStack);
+				if(val1 == NULL|| val2 == NULL) {
+						break;
+				}
+				eTree* newnode = create_node( opnode->token,  val2,  val1);
+				push_ps(&nodeStack, newnode);
+		}
+		
+		        val1 =pop_ps(&opStack);
+
+				if(val1->token.op != '('){
+					break;
+				}
+		
+		}
+	
+				
+		ta++;
+	}
+	result = pop_ps(&nodeStack);
+	if(	ta->type != EoS || result == NULL|| !isempty_ps(&nodeStack) ||!isempty_ps(&opStack)) {
+		fprintf(stderr, "Error : Invalid postfix expression\n");
+		result= NULL;
+	}
+
+
 
 	free_ps(&nodeStack);
 	free_ps(&opStack);
 
-	return NULL; // You may want to edit this
+	return result; // You may want to edit this
 }
 
 /* Task 7. Generate a postfix expression from a given expression tree
@@ -127,7 +261,19 @@ void etree_to_postfix(eTree *t) {
 	if (t == NULL)
 		return;
 		
-	// Task 8. Solution
+    if(t->token.type == operator){
+		// printf("(");
+		etree_to_postfix(t->left);
+		etree_to_postfix(t->right);
+		printf("%c ",t->token.op);
+		// printf(")");
+
+	}
+	else{
+	printf("%d ",t->token.value);
+	}
+
+
 }
 
 /* 	All the testing for the tasks are included in the main. 
@@ -163,14 +309,13 @@ int main() {
 		printf("-----------------------------\n");
 		result = infix_eval(s);
 		printf("Task 5. Evaluate infix expression: Result = %d\n", result);
-		// Task 5 Test
+		// Task 6 Test
 		root = infix_to_etree(s);
 		if(root == NULL){
 			printf("Task 6. Invalid infix expression\n");
 		}
 		else {
-			printf("Task 6. Expression Tree\n", 
-				root->token.value, root->token.op);
+			printf("Task 6. Expression Tree\n" );
 			print_etree(root);
 		}
 		// Task 7 Test
