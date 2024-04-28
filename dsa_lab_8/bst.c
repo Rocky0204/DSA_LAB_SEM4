@@ -1,6 +1,6 @@
 /*
-	Name:		<full name>
-	Roll No:	<roll number>
+	Name: SWADHA SWAROOP		<full name>
+	Roll No: 112201009	<roll number>
 	Course:		CS2130 DSA Lab 
 	Semester:	2024 Jan-Apr
 	Lab:		Week 8
@@ -167,9 +167,28 @@ Tree* insert(int key, Tree* tree) {
 		2.	Returns NULL if the actions fail
 */
 
+/*
 	// Task 1 Solution
-		
-	return tree; // You may want to edit this
+}*/
+
+	// Task 1 Solution
+	Tree* ptr = tree;
+	Tree* new = create_node(key,NULL,NULL);
+	if (new==NULL){
+		fprintf(stderr, "Error: Insertion failed.\n");
+		return NULL;
+	}
+	if (tree==NULL){
+		tree=new;
+		return tree;
+	}
+	if (key < tree->key){
+		tree->left=insert(key,tree->left);
+	}
+	else if (key > tree->key){
+		tree->right=insert(key,tree->right);
+	}
+	return ptr; // You may want to edit this
 }
 
 /* Task 2. find_min, find_max
@@ -181,8 +200,14 @@ int find_min(Tree* tree){
 			INT_MAX if the BST is empty.
 */
 	// Task 2a Solution
+	if (tree==NULL){
+		return INT_MAX;
+	}
+	while(tree->left!=NULL){
+		tree=tree->left;
+	}
 
-	return 0; // You may want to edit this
+	return tree->key; // You may want to edit this
 }
 
 int find_max(Tree* tree){
@@ -192,8 +217,14 @@ int find_max(Tree* tree){
 			INT_MAX if the BST is empty.
 */
 	// Task 2b Solution
+	if (tree==NULL){
+		return INT_MAX;
+	}
+	while(tree->right!=NULL){
+		tree=tree->right;
+	}
 
-	return 0; // You may want to edit this
+	return tree->key; // You may want to edit this
 }
 
 /* Helper function to check if a binary tree is a BST
@@ -223,8 +254,19 @@ Tree* search(int key, Tree* tree) {
 		2.	Else return NULL
 */
 	// Task 3 Solution
-
-	return tree; // You may want to edit this
+	while (tree != NULL){
+	if (tree->key == key){
+		return tree;}
+		if (key < tree->key){
+		search(key,tree->left);
+		tree=tree->left;
+		}
+	else if (key > tree->key){
+		search(key,tree->right);
+		tree=tree->right;
+	}
+	}
+	return NULL; // You may want to edit this
 }
 
 /* Task 4. Inoroder, Preorder and Postorder Traversal
@@ -237,6 +279,13 @@ void inorder(Tree* t) {
 	Action: Print the keys as visited in an inorder traversal.
 */
 	// Task 4a Solution
+	while (t!=NULL){
+		inorder(t->left);
+	printf("%d ",t->key);
+	inorder(t->right);
+	return;
+	}
+	
 }
 
 void preorder(Tree* t) {
@@ -245,6 +294,12 @@ void preorder(Tree* t) {
 	Action: Print the keys as visited in a preorder traversal.
 */
 	// Task 4b Solution
+	while (t!=NULL){
+	printf("%d ",t->key);
+	preorder(t->left);
+	preorder(t->right);
+	return;
+}
 }
 
 void postorder(Tree* t) {
@@ -253,6 +308,12 @@ void postorder(Tree* t) {
 	Action: Print the keys as visited in a postorder traversal.
 */
 	// Task 4c Solution
+	while (t!=NULL){
+	postorder(t->left);
+	postorder(t->right);
+	printf("%d ",t->key);
+	return;
+	}
 }
 
 
@@ -267,9 +328,33 @@ Tree* delete(int key, Tree* tree) {
 		2.	Else return the original tree.
 */
 	// Task 5 Solution
+
+	if(tree == NULL)
+		return tree;
+
+	if(key < tree->key) {
+		tree->left  =  delete(key, tree->left);
+		return tree;
+	}
+	if(key > tree->key) {
+		tree->right = delete(key, tree->right);
+		return tree;
+	}
+
+	if (tree->left == NULL) { 	
+		Tree* temp = tree->right;
+		return temp;
+	}
+	if (tree->right == NULL) { 	
+		Tree* temp = tree->left;
+		return temp;
+	}
+
+	int successor = find_min(tree->right);
+	tree->key = successor;
+	tree->right = delete(successor, tree->right);
 	return tree;
 }
-
 
 /* Task 6. Tree Sort 
 */
@@ -299,9 +384,12 @@ int sort_tree(int a[], int size) {
 	Returns: The new size of the array (after removing duplicates)
 */
 	// Task 6 Solution
-	
-
-
+	Tree* t = NULL;
+	for(int i = 0; i < size; i ++) {
+		t = insert(a[i], t);	
+	}
+	g_index = 0;
+	write_inorder(t, a);
 	return g_index;
 }
 
@@ -314,7 +402,7 @@ int main() {
 
 	Tree *t = NULL;
 	int key;
-/*
+
 	//Test Task 1. Insert
 	printf("\nTesting Task 1. Insert\n");
 	printf("========================\n");
@@ -455,7 +543,7 @@ int main() {
 	else
 		printf("Quick Sort: \t Failed\n");
 
-*/
+
 	return 0;
 }
 
