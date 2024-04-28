@@ -315,7 +315,6 @@ int main() {
 		print_list(list);
 	}	
 	printf("============================\n");
-	printf("\n TASKE1 \n");
     print_list(list);
 	printf("\n");
 
@@ -333,7 +332,6 @@ int main() {
 	}
 	printf("============================\n");
 
-printf("\n TASKE2 \n");
     print_list(list);
 	printf("\n");
 
