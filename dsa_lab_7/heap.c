@@ -1,6 +1,6 @@
 /*
-	Name:		<full name>
-	Roll No:	<roll number>
+	Name:SWADHA SWAROOP	<full name>
+	Roll No:112201009	<roll number>
 	Course:		CS2130 DSA Lab 
 	Semester:	2024 Jan-Apr
 	Lab:		Week 7
@@ -152,6 +152,24 @@ void heapify(Heap *h, int i) {
 	Action: Rearranges the tree such that the subtree hanging from i 
 			satisfies the heap property.
 */
+    if (h->size<= h->capacity){
+		if (left(i)< h->size){
+			if (h->data[left(i)] > h->data[i] ){
+				int k=h->data[i];
+				h->data[i]=h->data[left(i)];
+				h->data[left(i)]=k;
+				heapify(h,left(i));
+			}
+	}   
+	    if (right(i)<h->size){
+			if (h->data[right(i)] > h->data[i]){
+				int k=h->data[i];
+				h->data[i]=h->data[right(i)];
+				h->data[right(i)]=k;
+				heapify(h,right(i));
+			}
+		}
+	}
 	// Task 1 Solution
 	return;
 }
@@ -163,7 +181,9 @@ void build_heap(Heap *h) {
 			so that it satisfies the heap property. */
 	
 	// Task 2. Solution
-	
+	for(int i=(h->size)/2; i>=0; i--){
+		heapify(h,i);
+	}
 	return;
 }
 
@@ -176,10 +196,16 @@ void insert(Heap *h, int data) {
 	Error:	Prints "Error in insert: Heap Full" to stderr if h is full
 */
 	// Task 3 Solution
-	
+	if (h->size>= h->capacity){
+		fprintf(stderr, "Error in insert: Heap Full");
+	}
+	if (h->size < h->capacity){
+		h->data[h->size]=data;
+		h->size+=1;
+		build_heap(h);
+	}
 	return;
 }
-
 
 /* Task 4. Extract Max */
 int extract_max(Heap *h) {
@@ -192,7 +218,15 @@ int extract_max(Heap *h) {
 */
 	// Task 4 Solution
 
-	return 0; // You may have to edit this
+if (h->size == 0){
+		fprintf(stderr, "Error in extract_max: Heap Empty");
+		return INT_MIN;
+	}
+	int k = h->data[0];
+	h->data[0]=h->data[h->size-1];
+	h->size-=1;
+	build_heap(h);
+	return k; // You may have to edit this
 }
 
 /* Task 5. In-place Heap Sort */
@@ -204,7 +238,13 @@ void sort_heap(Heap* h) {
 			and the heap size is reset to the full value after the sorting. */
 
 	// Task 5 Solution
+	int j = h->size;
+	while(h->size >0){
+		int k = extract_max(h);
+		h->data[h->size+1]=k;
 
+	}
+	h->size=j;
 	return;
 }
 
@@ -325,10 +365,48 @@ void merge(int a[], int size, int lsize) {
 		fprintf(stderr, "Memory Allocation Failed\n");
 		exit(1);
 	}
-	
-	
-	free(c);
+	int n1=lsize;
+	int n2=size- lsize;
+	int arr1[n1];
+	int arr2[n2];
+	for (int k=0 ; k<lsize; k++){
+		arr1[k]=a[k];
 
+	}
+	for (int t= lsize;t<size;t++){
+		arr2[t-lsize]=a[t];
+	}
+	int arr[size];
+	int i=0;
+	int j=0;
+	int m=0;
+	while( i<n1 && j<n2){
+		if (arr1[i]<arr2[j]){
+			arr[m]=arr1[i];
+			m+=1;
+			i+=1;
+		}
+		if (arr1[i]>=arr2[j]){
+			arr[m]=arr2[j];
+			m+=1;
+			j+=1;
+		}
+	}
+	while( i < n1){
+		arr[m]=arr1[i];
+		i+=1;
+		m+=1;
+
+	}
+	while (j<n2){
+		arr[m]=arr2[j];
+		j+=1;
+		m+=1;
+	}
+	for(int i=0;i<size;i++){
+		a[i]=arr[i];
+	}
+	free(c);
 	return;
 }
 
@@ -382,7 +460,7 @@ int main() {
 	print_heap(&h);
 	
 
-	/*
+	
 
 	// Test Task 1: Heapify
 	printf("\nTesting Task 1. Heapify\n");
@@ -530,7 +608,6 @@ int main() {
 	free(data3);
 	free(data4);
 
-	*/
 
 	return 0;
 }
