@@ -1,4 +1,6 @@
 /*
+NAME: SWADHA SWAROOP
+ROLL: 112201009
 	Course:	CS2130 DSA Lab 
 	Semester:	2024 Jan-Apr
 	Lab:		Week 6 | 22/Feb/2024
@@ -107,8 +109,11 @@ sLL* insert_at_start(int data, sLL* list) {
 /* Tast 1: Implement a function to delete the next node (if it is not NULL) of a given node. It returns the value stored in the next node or -1 if the next node is NULL.
 */
 int get_next(sLL* node) {
-
-	
+	if (node->next !=NULL){
+		int j=node->next->data;
+		node->next=node->next->next;
+		return j;
+	}
 	return -1;
 
 } 
@@ -123,10 +128,31 @@ sLL* compare_and_insert(sLL* list, int data, int sorted_till){
      		Create a new node with data and insert the node into the list so that the list is sorted till the sorted-till+1-th index. Return the head pointer of the new list.
      		
 */
+sLL* new= create_node(data,NULL);
+sLL* ptr=list;
+if (list ==NULL){
+	return new;}
+if (ptr->data > data){
+	new->next=list;
+	return new;
+}
+int k=0;
+for(k;k<=sorted_till;k++){
+	if (ptr->next != NULL){
+		if (ptr->next->data > data){
+			new->next=ptr->next;
+			ptr->next=new;
+			return list;
+		}
+		else{
+			ptr=ptr->next;
+		}
+	}
 
-	
-	return list;
-	
+}
+new->next=ptr->next;
+ptr->next=new;
+return list;
 }
 
 
@@ -142,9 +168,18 @@ sLL* insertion_sort(sLL* list){
 		-	Return a pointer to the start of the sorted list.
 */
 //Task 3. Solution
-	
-	
-	return list;
+if (list==NULL){	
+	return NULL;
+}
+int till =-1;
+int a= list->data;
+sLL* new=create_node(a,NULL);
+while(a!= -1){
+	compare_and_insert(new,a,till);
+	 a = get_next(list);
+	 till++;	
+}
+return new;
 }
 
 
@@ -165,38 +200,38 @@ int main() {
 	}
 		
 /*       Test   Test 1*/
-/*	printf("\nTesting Task 1: get_next()\n");*/
-/*	printf("==========================\n");*/
-/*	print_list(list);*/
-/*	temp_list = list;*/
-/*	for(i=0; i<=5; i++){*/
-/*		temp_list=temp_list->next;*/
-/*	}*/
-/*	next_data = get_next(temp_list);*/
-/*	printf("Data of next node = %d \n", next_data);*/
-/*	print_list(list);*/
+	printf("\nTesting Task 1: get_next()\n");
+	printf("==========================\n");
+	print_list(list);
+	temp_list = list;
+	for(i=0; i<=5; i++){
+		temp_list=temp_list->next;
+	}
+	next_data = get_next(temp_list);
+	printf("Data of next node = %d \n", next_data);
+	print_list(list);
 	
 	
 /*       Test   Test 2*/
-/*	printf("\nTesting Task 1: compare_and_insert()\n");*/
-/*	printf("==========================\n");*/
-/*	print_list(list);*/
-/*	list = compare_and_insert(list,1,4);*/
-/*	print_list(list);*/
-/*	list = compare_and_insert(list,2,5);*/
-/*	print_list(list);*/
-/*	list = compare_and_insert(list,10,6);*/
-/*	print_list(list);*/
+	printf("\nTesting Task 1: compare_and_insert()\n");
+	printf("==========================\n");
+	print_list(list);
+	list = compare_and_insert(list,1,4);
+	print_list(list);
+	list = compare_and_insert(list,2,5);
+	print_list(list);
+	list = compare_and_insert(list,10,6);
+	print_list(list);
 
 	
 	
 /*       Test   Test 3*/
-/*	printf("\nTesting Task 3: insertion_sort()\n");*/
-/*	printf("==========================\n");*/
-/*	list = insertion_sort(list);*/
-/*	print_list(list);*/
+	printf("\nTesting Task 3: insertion_sort()\n");
+	printf("==========================\n");
+	list = insertion_sort(list);
+	print_list(list);
 
 
-	//delete_list(list);
+	// delete_list(list);
 	return 0;
 }
