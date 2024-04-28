@@ -1,8 +1,10 @@
 /*
-	Course:		CS2130 DSA Lab 
+NAME: SWADHA SWAROOP
+ROLL: 112201009
+	Course:		CS2024 DSA Lab 
 	Semester:	2024 Jan-Apr
 	Lab:		03 | Linked Lists
-	Task Set:	2 | Doubly Linked Lists (dLL)
+	Task Set:	0=2 | Doubly Linked Lists (dLL)
 
 	Aim: 		Implement a doubly linked list with some basic functions.
 	Assume:		All data to be stored are integers
@@ -80,43 +82,478 @@ dLL* create_dLL(node *head, node *tail) {
 	list->tail = tail;
 	return list;
 }
-
-
 /* Task 6. 
 	Copy all the functions (including main) that you have in simple-linked-list.c
 	here and edit all the COMMENTS to reflect the changes needed.
 */
 
-/* Task 7. 
-	Edit the code inside of each function to implement the functionality on doubly
-	linked lists. You can assume that position indices will still be non-negative.
-	Hence you need to do forward traversal for this Task. (Negative indices and
-	reverse traversals is the next Task.
+dLL* insert_at_start(int data, dLL* list) {
+/*
+	Inputs:
+		1. 	Data for the new node to be inserted
+		2.	A doubly linked list
+	Actions:
+		1.	A new node with the received data is inserted at the head of the
+			received list
+		2.	The pointer to doubly linked list is returned.
+	Error Response:
+		1.	Prints "Error: Insertion at start failed." to stderr
+		2.	Returns NULL if the new node cannot be created
+*/
+	node* new = create_node(data, list->head,NULL);
+	if(new == NULL) {
+		fprintf(stderr, "Error: Insertion at start failed\n");
+		return NULL;
+		}
+	else
+	{
+		list->head->prev=new;
+		list->head=new;
+		return list;
+		}
+}
+
+dLL* insert_at_end(int data, dLL* list) {
+/*
+	Inputs:
+		1. 	Data for the new node to be inserted
+		2.	A doubly linked list
+	Actions:
+		1.	A new node with the received data is inserted at the tail of the
+			received list
+		2.	The pointer to doubly linked list is returned.
+	Error Response:
+		1.	Prints "Error: Insertion at end failed." to stderr
+		2.	Returns NULL if the new node cannot be created
+*/
+	node* new = create_node(data,NULL,list->tail);
+	if(new == NULL) {
+		fprintf(stderr, "Error: Insertion at end failed\n");
+		return NULL;
+		}
+	else
+	{
+		list->tail->next=new;
+	        list->tail=new;
+		return list;
+		}
+}
+
+void print_list(dLL *list) {
+/*
+	Input:	A list
+	Actions:
+		Prints the data in the doubly linked list from head to tail
+		in the format:  D0 - D1 - ... - Dn - NULL
+*/
+	node * temp=list->head;
+	printf("%d - ", temp->data);
+	while(temp->next != NULL)
+	{
+	temp=temp->next;
+	printf("%d - ", temp->data);
+	}
+	if(temp->next == NULL){
+		printf("NULL\n");
+		return;
+	}
+}
+
+void print_list_reverse(dLL *list) {
+/*
+	Input:	A list
+	Actions:
+		Prints the data in the linked list from tail to head
+		in the format:  D0 - D1 - ... - Dn - NULL
+*/
+	node * temp=list->tail;
+	printf("%d - ", temp->data);
+	while(temp->prev != NULL)
+	{
+	temp=temp->prev;
+	printf("%d - ", temp->data);
+	}
+	if(temp->prev == NULL){
+		printf("NULL\n");
+		return;
+	}
+}
+
+
+
+dLL* insert_at_pos(int data, dLL* list,  int pos) {
+/*
+	Inputs:
+		1. Data for the new node to be inserted
+		2. A doubly linked list
+		3. The position in the list where to insert the new node (0 = start) 
+	Actions:
+		1.	If position is within range, a new node with the given data is
+			inserted to the list at the specified position. 
+		2.	The pointer to doubly linked list is returned. (The head will be different
+			from the input list only if the insertion is at the start)
+	Error Responses:
+		1	If the position is larger than the current length of the list, an
+			error message "Error: Position out of range." is printed and a NULL
+			pointer is returned.
+		2	Returns NULL pointer also if the new node could not be created
 */
 
-/* 
-	Task 8. Allow negative indices and implement reverse traversal for them.
-	(a) insert_at_pos(), get_from_pos(), and delete_at_pos() functions
-		should accept negative integers also as position argument. 
-		-1 : last node (tail), -2 is previous to -1 and so on.
-	(b) if the given position is negative, the list should be traversed
-		backwards from the tail. This speeds up data access in the 
-		second half of large lists 
-	(c) Modify the Testing loops for these functions in main to test for
-		negative indices also.
+	dLL * newList;
+	node* startnode;
+	if (pos == 0){
+		return insert_at_start(data, list);
+	}
+	else if (pos == -1){
+		return insert_at_end(data, list);
+	}	
+	else if (pos>0){
+		startnode = list->head;
+		for(int i = 1; i < pos; i++) { 
+			if(startnode->next == NULL) {
+				fprintf(stderr, 
+					"Error: Position out of range. pos = %d, list-length = %d.\n", pos, i);
+				return NULL;
+			}
+			startnode = startnode->next;
+		}
+		newList=create_dLL(startnode->next,list->tail);
+		newList = insert_at_start(data, newList); 
+		if(newList == NULL) {
+			fprintf(stderr, "Error: Insertion failed.\n");
+			return NULL;
+			}
+		else{
+			startnode->next = newList->head;
+			newList->head->prev=startnode;
+			return list;
+		}	
+	}
+	else
+	{
+		startnode = list->tail;	
+		for(int i = -2; i > pos; i--) { 
+			if(startnode->prev == NULL) {
+				fprintf(stderr, 
+					"Error: Position out of range. pos = %d, list-length = %d.\n", pos, i);
+				return list;
+			}
+			startnode = startnode->prev;
+		}
+		newList=create_dLL(list->head,startnode->prev);
+		newList = insert_at_end(data, newList); 
+		if(newList == NULL) {
+			fprintf(stderr, "Error: Insertion failed.\n");
+			return NULL;
+			}
+		else {
+			startnode->prev = newList->tail;
+			newList->tail->next=startnode;
+			return list;
+		}	
+	}
+}
+
+
+unsigned int find(int data, dLL* list) {
+/*
+	Inputs
+		1. 	The data to search for
+		2. 	A doubly linked list
+	Action
+		1. 	Returns the position of the first node with the given data.
+		2.	Returns -1 if the given data is not in the list
+	Error Response:
+*/
+// Task 4. Solution
+	unsigned int pos = 0;
+	node *temp;
+	temp=list->head;
+	while(temp != NULL) {
+		if(temp->data == data)
+			return pos;
+		pos++;
+		temp = temp->next ;
+	}
+	return -1;
+}
+
+int get_from_pos(dLL* list, int pos) {
+/*
+	Inputs
+		1. 	A doubly linked list 
+		2. 	Position from which to read the data
+	Action
+		1.	Returns the data stored in the node at the given position (start = 0).
+	Error Responses:
+		1.	Prints an error message "Error: Attempt to read outside of the
+			list." to stderr and returns INT_MAX if one tries to read from
+			outside the index-range of the list
 */
 
-/* 	This main() only contains stuff to test the data structures
-	Replace this with the main from simple-linked-list.c
+	unsigned int i;
+	node *temp;
+	if(pos>=0)
+	{
+		temp=list->head;
+		for(i = 0; i < pos; i++) {
+			temp = temp->next;
+			if(temp == NULL) {
+				fprintf(stderr, "Error: Attempt to read outside of the list.\n");
+				return INT_MAX;
+			}
+		}
+		return temp->data;
+	}
+	
+	else{
+		temp=list->tail;
+		for(i = -1; i > pos; i--) {
+			temp = temp->prev;
+			if(temp == NULL) {
+				fprintf(stderr, "Error: Attempt to read outside of the list.\n");
+				return INT_MAX;
+			}
+		}
+		return temp->data;
+	}
+}
+
+dLL* delete_first(dLL* list) {
+/*
+	Inputs
+		1. 	A list
+	Actions
+		1. 	Frees the memory allotted for the start node
+		3.	Returns the start pointer to the rest of the list.
+	Error Responses:
+		1.	Prints an error message "Error: Attempt to delete from and empty
+			list." to stderr and returns NULL if the input list is empty.
 */
+	if(list == NULL) {
+		fprintf(stderr, "Error: Attempt to delete from and empty list.\n");
+		return NULL;
+	}
+	dLL* newList = (dLL *) malloc(sizeof(dLL));
+	newList->head=list->head->next;
+	newList->tail=list->tail;
+	newList->head->prev=NULL;
+	free(list->head);
+	return newList;
+}
+
+
+dLL* delete_last(dLL* list) {
+/*
+	Inputs
+		1. 	A list
+	Actions
+		1. 	Frees the memory allotted for the start node
+		3.	Returns the start pointer to the rest of the list.
+	Error Responses:
+		1.	Prints an error message "Error: Attempt to delete from and empty
+			list." to stderr and returns NULL if the input list is empty.
+*/
+	if(list == NULL) {
+		fprintf(stderr, "Error: Attempt to delete from and empty list.\n");
+		return NULL;
+	}
+	dLL* newList = (dLL *) malloc(sizeof(dLL));
+	newList->tail=list->tail->prev;
+	newList->head=list->head;
+	newList->tail->next=NULL;
+	free(list->tail);
+	return newList;
+}
+
+dLL* delete_at_pos(dLL* list, int pos) {
+/*
+	Inputs
+		1. 	A list
+		2. 	The position of the node to be deleted
+	Actions
+		1. 	Frees the memory allotted for the node at the specified position
+		2.	Links the next pointer of the previous node to 	the next node.
+		3.	Returns the start pointer of the list (this may change if the
+			first node is deleted)
+	Error Responses:
+		1.	Prints an error message "Error: Attempt to delete outside of the
+			list." to stderr and returns NULL if one tries to delete a node
+			outside the index-range of the list.
+*/
+	int i;	
+	if(pos == 0) {
+		return delete_first(list);
+		}
+	else if (pos==-1){
+		return delete_last(list);
+	}
+	else if(pos>0){
+		dLL * newList;
+		node *startnode = (node *) malloc(sizeof(node));
+		startnode=list->head;
+		for(i = 1; i < pos; i++) {
+			startnode = startnode->next;
+			if(startnode == NULL) {
+				fprintf(stderr, "Error: Attempt to delete a node outside of the list.\n");
+				return NULL;
+			}
+		}
+		if(startnode->next==list->tail){
+		return delete_last(list);
+		}
+		newList=create_dLL(startnode->next,list->tail);
+		newList = delete_first(newList);
+		if(newList == NULL) {
+			fprintf(stderr, "Error: deletion failed.\n");
+			return NULL;
+			}
+		else {
+			startnode->next = newList->head;
+			newList->head->prev=startnode;
+			return list;
+		}
+	}
+	else{
+		dLL * newList;
+		node *startnode = (node *) malloc(sizeof(node));
+		startnode = list->tail;
+		for(i = -2; i > pos; i--) {
+			startnode = startnode->prev;
+			if(startnode == NULL) {
+				fprintf(stderr, "Error: Attempt to delete a node outside of the list.\n");
+				return NULL;
+			}
+		}
+		if(startnode->prev==list->head){
+		return delete_first(list);
+		}
+		newList=create_dLL(list->head,startnode->prev);
+		newList = delete_last(newList); 
+		if(newList == NULL) {
+			fprintf(stderr, "Error: deletion failed.\n");
+			return NULL;
+			}
+		else {
+			startnode->prev = newList->tail;
+			newList->tail->next=startnode;
+			return list;
+		}
+	}
+}
+
 int main() {
 
-	node 	*new = create_node(10, NULL, NULL);
-	dLL	 	*list = create_dLL(new, new);
+    int i;
+        
+	node *new = create_node(0, NULL, NULL);
+	dLL* list = create_dLL(new, new);
+	dLL * templist=create_dLL(new, new);
 
-	printf("%d\n", new->data);
-	printf("%d\n", list->head->data);
-	printf("%d\n", list->tail->data);
+	printf("============================\n");
+	printf("### Testing different insert funcitons\n\n");
 
+	// Test for: insert_at_start() and insert_at_end(). Even numbers inserted at start and odd numbers inserted at end.
+	printf("Testing insert_at_start() and insert_at_end(). Even numbers inserted at start and odd numbers inserted at end\n");
+	for(i = 1; i <=10; i++)
+	 {
+		if(i%2==0)
+			{
+			list = insert_at_start(i, list);
+			print_list(list);
+			}
+		else
+			{
+			list = insert_at_end(i, list);
+				print_list(list);
+			}
+	
+	}	
+	printf("============================\n");
+	
+	printf("Testing print_list_reverse()\n");
+	print_list_reverse(list);	
+	
+	// Test for: insert_at_pos()
+	printf("============================\n");
+	print_list(list);
+	printf("Testing insert_at_pos(). Multiples of 3 inserted at every 4th position\n");
+	for(i = 0; i < 4; i++) {
+		list = insert_at_pos(i*3, list, i*4);
+		print_list(list);
+	}
+	// Testing insert outside of the range
+	printf("============================\n");
+	printf("Testing insert_at_pos() for pos out of range\n");
+	templist = insert_at_pos(25, list, 25);
+	if(templist == NULL) {
+		printf("NULL pointer returned.\n");
+	}
+	printf("============================\n\n");
+	
+	// Test : get_from_pos()
+	printf("============================\n");
+	printf("### Testing different get functions\n\n");
+
+	printf("Testing get_from_pos() where pos is non negative\n");
+	print_list(list);
+	for(i = 0; i < 25; i += 4)
+	{
+		printf("Data at pos %d is %d\n", i, get_from_pos(list, i));
+	}	
+
+	printf("Testing get_from_pos() where pos is negative\n");
+	print_list(list);
+	for(i = -1; i > -15; i -= 4)
+	{
+		printf("Data at pos %d is %d\n", i, get_from_pos(list, i));
+	}	
+	printf("============================\n\n");
+	
+	printf("============================\n");
+	printf("### Testing find()\n");
+	print_list(list);
+	for(i = 0; i <= 12; i+=3) {
+		printf("Position of %d is %d\n", i, find(i, list));
+	}
+	printf("============================\n\n");
+	
+	printf("============================\n");
+	printf("### Testing different delete functions\n\n");
+
+	// Test : delete_first()
+	print_list(list);
+	printf("Testing delete_first() \n");
+	list= delete_first(list);
+	print_list(list);
+	
+	// Test : delete_last()
+	printf("Testing delete_last()\n");
+	list= delete_last(list);
+	print_list(list);
+	
+	// Test for : delete_at_pos()
+	printf("Testing delete_at_pos()\n");
+	print_list(list);
+	for(i = 0; i <= 10; i += 5) {
+		printf("Deleting data (%d) at pos %d\n", get_from_pos(list, i), i);
+		list = delete_at_pos(list, i);
+		print_list(list);
+	}
+	printf("Testing delete_at_pos() for negative index\n");
+	for(i = -1; i > -7; i -= 3) {
+		printf("Deleting data (%d) at pos %d\n", get_from_pos(list, i), i);
+		list = delete_at_pos(list, i);
+		print_list(list);
+	}
+	// Testing delete outside of the range
+	i = 10;
+	printf("Deleting data (%d) at pos %d\n", get_from_pos(list, i), i);
+	templist = delete_at_pos(list, i);
+	if(templist == NULL) {
+		printf("NULL pointer returned.\n");
+	}
+	printf("============================\n\n");
+	
 	return 0;
 }
