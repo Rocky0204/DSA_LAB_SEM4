@@ -81,23 +81,47 @@ Output: Pointer to the root node of the tree.	 */
 
 
 node* build_dfs_tree (int order, int** adj_mat, int node_index,  int* marked){
-
-	
 	node* ptr_current_node = NULL;
-	
-	return ptr_current_node;
-}
-
+	node* ptr_child_node=NULL;
+	node* ptr_children_list=NULL;
+	node* ptr_temp;
+	ptr_current_node = create_node(node_index);
+	if(ptr_current_node == NULL){
+		return ptr_current_node;
+	}
+	if (marked[node_index]!=1){
+		marked[node_index]=1;
+		for (int i =0;i<order;i++){
+			if(adj_mat[node_index][i] !=0 && marked[i]==0){
+				ptr_child_node=build_dfs_tree(order,adj_mat,i,marked);
+				ptr_temp = ptr_children_list;
+			ptr_children_list = ptr_child_node;
+			ptr_child_node->ptr_sibling = ptr_temp;	
+		}
+	}
+	ptr_current_node-> ptr_children_list=ptr_children_list;
+		return ptr_current_node;
+		}
+	}
 	
 /*Task 1: Build DFS Forest*/
 /*Input: Order of the graph and pointer to the adjacency matrix of the graph*/
 /*Output: Pointer to the list of root nodes of the DFS trees of the forest */
 
 node* build_dfs_forest (int order, int ** adj_mat){
-
+int i;
 	node* ptr_root_node_list = NULL;
-	
-	
+	node* ptr_temp;
+	node* ptr_new_tree_root;
+	int * marked = (int*) calloc (order, sizeof(int));
+	for (i=0; i< order; i++){
+		if (marked[i]==0){
+			ptr_new_tree_root = build_dfs_tree(order, adj_mat, i,  marked);
+			ptr_temp = ptr_root_node_list;
+			ptr_root_node_list = ptr_new_tree_root;
+			ptr_new_tree_root -> ptr_sibling = ptr_temp;
+		}
+	}
 	return ptr_root_node_list;
 }
 
@@ -129,7 +153,19 @@ Deleting node 12
 Input: Pointer to the root node of the tree.*/
 
 int delete_dfs_tree(node* ptr_root_node){
+	node* ptr_temp;
+	ptr_temp = ptr_root_node;
+	if (ptr_root_node-> ptr_sibling != NULL){
+		delete_dfs_tree(ptr_root_node-> ptr_sibling);
+		
+	}
 	
+	if (ptr_root_node-> ptr_children_list != NULL){
+		delete_dfs_tree(ptr_root_node-> ptr_children_list);
+	}
+	
+	printf ("Deleting node %d\n", ptr_temp->node_index);
+	free(ptr_root_node);
 	
 	
 	return 0;
@@ -153,8 +189,12 @@ In the above example nodes 6,..., 12 belong to the same component and nodes 4,..
 Input: Pointer to the root node of the tree.*/
 
 int delete_dfs_forest(node* ptr_node_list){
-	
-	
+	if (ptr_node_list -> ptr_sibling != NULL){
+		delete_dfs_forest(ptr_node_list -> ptr_sibling);
+		ptr_node_list->ptr_sibling = NULL;
+		printf("\n \n");
+	}
+	delete_dfs_tree(ptr_node_list);
 	return 0;
 	
 }
@@ -190,16 +230,16 @@ int main(){
 	}
 
 
-/*/*Test Task 4:	*/*/
-/*	ptr_forest= build_dfs_forest(order, adj_mat);*/
-/*	print_dfs_forest(ptr_forest);*/
-/*	*/
-/*	printf("\n\n");*/
-/*/*Test Task 5:	*/*/
-/*	print_with_right_neighbour (order, adj_mat);*/
+/*/*Test Task 4:	*/
+	ptr_forest= build_dfs_forest(order, adj_mat);
+	print_dfs_forest(ptr_forest);
+	
+	printf("\n\n");
+/*Test Task 5:	*/
+	print_with_right_neighbour (order, adj_mat);
 
-/*/*Test Task 6:*/*/
-/*	delete_dfs_forest(ptr_forest);*/
+/*Test Task 6:*/
+	delete_dfs_forest(ptr_forest);
 	
 	return 0;
 }
