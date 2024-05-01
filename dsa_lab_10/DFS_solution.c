@@ -77,64 +77,51 @@ Output: Pointer to the root node of the tree.	 */
 
 
 
-node* build_dfs_tree (int order, int** adj_mat, int node_index,  int* marked){
+node* build_dfs_tree(int order, int** adj_mat, int node_index, int* visited) {
+    node* current = create_node(node_index);
+    if (current == NULL) {
+        return NULL;
+    }
+    visited[node_index] = 1;
 
-	int i,j;
-	node* ptr_current_node = NULL;
-	node* ptr_child_node=NULL;
-	node* ptr_children_list=NULL;
-	node* ptr_temp;
-	
-	ptr_current_node = create_node(node_index);
-	
-	if(ptr_current_node == NULL){
-	
-		return ptr_current_node;
-	}
-	
-	marked[node_index]=1;
+    node* child = NULL;
+    node* sibling = NULL;
 
-	for (i=0; i< order; i++){
-		if (adj_mat[node_index][i] == 1 && marked[i] == 0){
-			
-			ptr_child_node = build_dfs_tree (order, adj_mat, i,  marked);
-			ptr_temp = ptr_children_list;
-			ptr_children_list = ptr_child_node;
-			ptr_child_node->ptr_sibling = ptr_temp;
-			
-		}
-		
+    for (int i = 0; i < order; i++) {
+        if (adj_mat[node_index][i] == 1 && visited[i] == 0) {
+            node* child_tree = build_dfs_tree(order, adj_mat, i, visited);
+            child_tree->ptr_sibling = child;
+            child = child_tree;
+        }
+    }
 
-	}
-
-		ptr_current_node-> ptr_children_list=ptr_children_list;
-		return ptr_current_node;
+    current->ptr_children_list = child;
+    return current;
 }
+
 
 	
 /*Task 4: Build DFS Forest*/
 /*Input: Order of the graph and pointer to the adjacency matrix of the graph*/
 /*Output: Pointer to the list of root nodes of the DFS trees of the forest */
 
-node* build_dfs_forest (int order, int ** adj_mat){
-	int i;
-	node* ptr_root_node_list = NULL;
-	node* ptr_temp;
-	node* ptr_new_tree_root;
-	
-	int * marked = (int*) calloc (order, sizeof(int));
-	
-	for (i=0; i< order; i++){
-		if (marked[i]==0){
-			ptr_new_tree_root = build_dfs_tree(order, adj_mat, i,  marked);
-			ptr_temp = ptr_root_node_list;
-			ptr_root_node_list = ptr_new_tree_root;
-			ptr_new_tree_root -> ptr_sibling = ptr_temp;
-		}
-	}
-	
-	return ptr_root_node_list;
+node* build_dfs_forest(int order, int** adj_mat) {
+    node* root_list = NULL;
+
+    int* visited = (int*)calloc(order, sizeof(int));
+
+    for (int i = 0; i < order; i++) {
+        if (visited[i] == 0) {
+            node* tree_root = build_dfs_tree(order, adj_mat, i, visited);
+            tree_root->ptr_sibling = root_list;
+            root_list = tree_root;
+        }
+    }
+
+    free(visited);
+    return root_list;
 }
+
 
 /*Task 5: Order the vertices of the graph in such a way so that each vertex has at least one neighbour to its right except for C number of vertices where C is the*/
 /*number of component of the graph.*/
@@ -145,7 +132,6 @@ node* build_dfs_forest (int order, int ** adj_mat){
 /*Input: Order and pointer to the adjacency matrix of the graph.*/
 
 int print_with_right_neighbour (int order, int** adj_mat){
-
 
 	return 0;
 }
