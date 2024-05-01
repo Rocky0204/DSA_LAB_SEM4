@@ -1,7 +1,7 @@
 
 /*
-	Name:		<enter your full name>
-	Roll No:	<enter your roll number>
+	Name: SWADHA SWAROOP		<enter your full name>
+	Roll No: 112201009 <enter your roll number>
 	Course:		CS2130 DSA Lab 
 	Semester:	2024 Jan-Apr
 	Lab:		Test 2 | 28/Mar/2024
