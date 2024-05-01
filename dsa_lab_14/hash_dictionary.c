@@ -149,22 +149,12 @@ OA_Hash_Table init_hash_oa_table(int num_data_items){
 	ht.prime = next_prime(num_data_items); 
 	ht.num_collisions = 0;
 	ht.ptr_table = (unsigned int*) (malloc(sizeof(unsigned int) * ht.prime));
-	for (int i = 0;i< num_data_items; i++){
+	for (int i = 0;i< ht.prime; i++){
 		ht.ptr_table[i] = UINT_MAX;
 	}
 	
 	return ht;
 }
-
-/*
-gives the hash for given x and i
-*/
-int get_hash(int x,int i,int m){
-	if (i == 0 )
-		return x % m;
-	return (get_hash(x,0,m) + i) % m;
-}
-
 /*
 
 hash_oa_insert: Insert a given list of data items into a given hash table with open addressing.
@@ -176,25 +166,18 @@ hash_oa_insert: Insert a given list of data items into a given hash table with o
 		Output: Updata the hash table pointed by ptr_oaht appropriately.       
 */
 int hash_oa_insert(int num_data_items, unsigned int* ptr_data, OA_Hash_Table* ptr_oaht, int probe_seq){
-
-	// printf("%d prime\n",ptr_oaht->prime);
-	for (int i =0;i< num_data_items; i++){
+for (int i =0;i< num_data_items; i++){
+	int coll=0;
 		unsigned int num = ptr_data[i];
-		int y = 0,pos = -1,prime = ptr_oaht->prime;
-		int h = num % prime;
-		// printf("%u %d,\n",num,h);
-		do{
-			pos = (h++) % prime;
-			y++;
-			// printf("%d ,\n",pos);
-		}while(ptr_oaht->ptr_table[pos] != UINT_MAX);
-		if (ptr_oaht->num_collisions < y)
-			ptr_oaht->num_collisions = y;
-		// printf("%d , %d\n",pos,num);
-		ptr_oaht->ptr_table[pos] = num;
-	}
-	
-	return 0;
+		int index= num % ptr_oaht->prime;
+		while ( ptr_oaht->ptr_table[index] != UINT_MAX){
+			index= (index +1 ) % ptr_oaht->prime;
+			coll++;
+		}
+		ptr_oaht->ptr_table[index]=num;
+		ptr_oaht->num_collisions=coll;
+		}
+return 0;
 }
 
 
@@ -211,22 +194,18 @@ int hash_oa_insert(int num_data_items, unsigned int* ptr_data, OA_Hash_Table* pt
 		Output: Update the ptr_flag array appropriately. */      
 		       
 int hash_oa_search(int num_data_items, unsigned int* ptr_data, OA_Hash_Table* ptr_oaht, int* ptr_flag, int probe_seq){
-
-	for (int i =0;i< num_data_items; i++){
+    for (int i =0;i< num_data_items; i++){
 		unsigned int num = ptr_data[i];
-		int y = 0,pos = -1,prime = ptr_oaht->prime;
-		int h = num % prime;
-		do{
-			pos = (h++) % prime;
-			y++;
-			if (ptr_oaht->ptr_table[pos] == num){
-				ptr_flag[i] = 1;
+		int index= num % ptr_oaht->prime;
+		while (ptr_oaht->ptr_table[index]!= UINT_MAX){
+			if(ptr_oaht->ptr_table[index]==num){
+				ptr_flag[i]=1;
 				break;
 			}
-		}while(y != ptr_oaht->num_collisions);
-	}
-	
-	return 0;
+			index= (index +1 ) % ptr_oaht->prime;
+		}
+		}
+return 0;
 }
 /* hash_oa_delete: Delete a given list of data items from the hash table.
 		Input: i) num_data_items - number of data items to be deleted.
@@ -239,23 +218,19 @@ int hash_oa_search(int num_data_items, unsigned int* ptr_data, OA_Hash_Table* pt
 
 
 int hash_oa_delete(int num_data_items, unsigned int* ptr_data, OA_Hash_Table* ptr_oaht, int* ptr_flag, int probe_seq){
-
-	for (int i =0;i< num_data_items; i++){
+for (int i =0;i< num_data_items; i++){
 		unsigned int num = ptr_data[i];
-		int y = 0,pos = -1,prime = ptr_oaht->prime;
-		int h = num % prime;
-		do{
-			pos = (h++) % prime;
-			y++;
-			if (ptr_oaht->ptr_table[pos] == num){
-				ptr_oaht->ptr_table[pos] = UINT_MAX;
-				ptr_flag[i] = 1;
+		int index= num % ptr_oaht->prime;
+		while (ptr_oaht->ptr_table[index]!= UINT_MAX){
+			if(ptr_oaht->ptr_table[index]==num){
+				ptr_oaht->ptr_table[index]=UINT_MAX-1;
+				ptr_flag[i]=1;
 				break;
 			}
-		}while(y != ptr_oaht->num_collisions);
-	}
-
-	return 0;
+			index= (index +1 ) % ptr_oaht->prime;
+		}
+		}
+return 0;
 }
 
 /************************************************************* Task 2: Hash with Chaining ******************************************/
@@ -276,23 +251,18 @@ typedef struct {
  
  */
 
-Hash_Table init_hash_table(int size){
-	Hash_Table ht;
-
-	ht.num_elements = size;
-	ht.prime = next_prime(size); 
-	ht.num_collisions = 0;
-	ht.ptr_table = (list_node**) (malloc(sizeof(list_node*) * ht.prime));
-	for (int i = 0;i< size; i++){
-		ht.ptr_table[i] = NULL;
-	}
-	int LOWER = 0;
-	int UPPER = ht.prime - 1;
-	for (int i=0; i< 4;i++){
-		ht.ptr_coeffs[i] = get_random(LOWER,UPPER);
-	}
-	
-	return ht;
+Hash_Table init_hash_table(int size) {
+    Hash_Table ht;
+    ht.num_elements = size;
+    ht.prime = next_prime(size);
+    ht.num_collisions = 0;
+    ht.ptr_table = (list_node**) calloc(ht.prime, sizeof(list_node*));
+    
+    for (int i = 0; i < 4; i++) {
+        ht.ptr_coeffs[i] = rand() % ht.prime; // Random coefficient within the prime range
+    }
+    
+    return ht;
 }
 
 
@@ -309,34 +279,20 @@ hash_chain_insert: Insert a given list of data items into a given hash table wit
 
 
 
-int hash_chain_insert(int num_data_items, unsigned int* ptr_data, Hash_Table* ptr_ht){
-	
-	for (int i = 0;i< num_data_items;i++){
-		unsigned int num=ptr_data[i];
-		// getting the value of position
-		int pos = 0,pow_var = 24;
-		for (int j = 0;j<4;j++){
-			int val = num / (int)pow(2,pow_var);
-			num = num % (int)pow(2,pow_var);
-			pow_var -=8;
-			pos += val * ptr_ht->ptr_coeffs[j];
-		}
-		pos %= (int) ptr_ht->prime;
-		num=ptr_data[i];
-		list_node* head = ptr_ht->ptr_table[pos];
-		if(head != NULL){
-			ptr_ht->num_collisions ++;
-		}
-		list_node* newNode = create_node(num);
-		newNode->ptr_next = head;
-		ptr_ht->ptr_table[pos] = newNode;
-
-	}
-		
-
-	return 0;
-	
+int hash_chain_insert(int num_data_items, unsigned int* ptr_data, Hash_Table* ptr_ht) {
+    for (int i = 0; i < num_data_items; i++) {
+        unsigned int num = ptr_data[i];
+        int pos = (num * ptr_ht->ptr_coeffs[0] + num) % ptr_ht->prime;
+        list_node* newNode = create_node(num);
+        if (ptr_ht->ptr_table[pos] != NULL) {
+            ptr_ht->num_collisions++;
+        }
+        newNode->ptr_next = ptr_ht->ptr_table[pos];
+        ptr_ht->ptr_table[pos] = newNode;
+    }
+    return 0;
 }
+
 
 /****************************** Task 2(b) **************************************************************/
 
@@ -351,35 +307,24 @@ int hash_chain_insert(int num_data_items, unsigned int* ptr_data, Hash_Table* pt
 		Output: Update the ptr_flag array appropriately. */     
 
 
-int hash_chain_search( Hash_Table* ptr_ht, int data_size, unsigned int* ptr_data, int* ptr_flag){
-	// print_hash_table(*ptr_ht);
+int hash_chain_search(Hash_Table* ptr_ht, int data_size, unsigned int* ptr_data, int* ptr_flag) {
+    for (int i = 0; i < data_size; i++) {
+        unsigned int num = ptr_data[i];
+        
+        int pos = (num * ptr_ht->ptr_coeffs[0] + num) % ptr_ht->prime;
 
-	for (int i = 0;i< data_size;i++){
-		unsigned int num=ptr_data[i];
-		// getting the value of position
-		int pos = 0,pow_var = 24;
-		for (int j = 0;j<4;j++){
-			int val = num / (int)pow(2,pow_var);
-			num = num % (int)pow(2,pow_var);
-			pow_var -=8;
-			pos += val * ptr_ht->ptr_coeffs[j];
-		}
-		pos %= (int) ptr_ht->prime;
-		list_node* head = ptr_ht->ptr_table[pos];
-		num=ptr_data[i];
-		while (head != NULL){
-			if(head->data == num){
-				ptr_flag[i] = 1;
-				break;
-			}
-			head = head->ptr_next;
-		}
-
-	}
-	
-		
-	return 0;
+        list_node* head = ptr_ht->ptr_table[pos];
+        while (head != NULL) {
+            if (head->data == num) {
+                ptr_flag[i] = 1;
+                break;
+            }
+            head = head->ptr_next;
+        }
+    }
+    return 0;
 }
+
 /* hash_chain_delete: Delete a given list of data items from the hash table with chaining.
 		Input: i) data_size - number of data items to be deleted.
 		       ii) ptr_data - list of data items to be deleted.
@@ -388,43 +333,34 @@ int hash_chain_search( Hash_Table* ptr_ht, int data_size, unsigned int* ptr_data
 		       
 		       
 		Output: If a given data item is found in the table then it should be deleted. Update the ptr_flag array appropriately. */  
-int hash_chain_delete(Hash_Table* ptr_ht, int data_size, unsigned int* ptr_data, int* ptr_flag){
-	
+int hash_chain_delete(Hash_Table* ptr_ht, int data_size, unsigned int* ptr_data, int* ptr_flag) {
+    for (int i = 0; i < data_size; i++) {
+        unsigned int num = ptr_data[i];
+        
+        int pos = (num * ptr_ht->ptr_coeffs[0] + num) % ptr_ht->prime;
 
-	for (int i = 0;i< data_size;i++){
-		unsigned int num=ptr_data[i];
-		// getting the value of position
-		int pos = 0,pow_var = 24;
-		for (int j = 0;j<4;j++){
-			int val = num / (int)pow(2,pow_var);
-			num = num % (int)pow(2,pow_var);
-			pow_var -=8;
-			pos += val * ptr_ht->ptr_coeffs[j];
-		}
-		pos %= (int) ptr_ht->prime;
-		num=ptr_data[i];
-		list_node* head = ptr_ht->ptr_table[pos];
-		list_node* prev = NULL;
-		while (head != NULL){
-			if(head->data == num){
-				ptr_flag[i] = 1;
-				break;
-			}
-			head = head->ptr_next;
-		}
-		// deleting the node
-		if (head != NULL){
-			if (prev != NULL){
-				prev->ptr_next = head->ptr_next;
-			}else{
-				ptr_ht->ptr_table[pos] = head->ptr_next;
-			}
-			free(head);
-		}
-	}
-	// print_hash_table(*ptr_ht);
+        list_node* head = ptr_ht->ptr_table[pos];
+        list_node* prev = NULL;
 
-	return 0;
+        while (head != NULL) {
+            if (head->data == num) {
+                ptr_flag[i] = 1;
+                break;
+            }
+            prev = head;
+            head = head->ptr_next;
+        }
+
+        if (ptr_flag[i]) {
+            if (prev == NULL) {
+                ptr_ht->ptr_table[pos] = head->ptr_next;
+            } else {
+                prev->ptr_next = head->ptr_next;
+            }
+            free(head);
+        }
+    }
+    return 0;
 }
 
 
@@ -442,38 +378,32 @@ hash_chain_resize_insert: Insert a given list of data items into a given hash ta
 		Output: Final hash table.       
 */
 
-Hash_Table hash_chain_resize_insert(int num_data_items, unsigned int* ptr_data, Hash_Table* ptr_ht){
-	
-	Hash_Table ht;
-	if (ptr_ht->num_elements <= num_data_items){
-		ht = init_hash_table(ptr_ht->num_elements * 2);
-		ptr_ht = &ht;
-		
-	}
+Hash_Table hash_chain_resize_insert(int num_data_items, unsigned int* ptr_data, Hash_Table* ptr_ht) {
+    // Check if resizing is necessary
+    if (ptr_ht->num_elements + num_data_items > ptr_ht->prime / 2) {
+        // Initialize a larger hash table with double the prime capacity
+        int new_size = ptr_ht->prime * 2;
+        Hash_Table new_ht = init_hash_table(new_size);
+        
+        // Rehash existing data into the new table
+        for (int i = 0; i < ptr_ht->prime; i++) {
+            list_node* node = ptr_ht->ptr_table[i];
+            while (node != NULL) {
+                hash_chain_insert(1, &node->data, &new_ht);
+                node = node->ptr_next;
+            }
+        }
+        
+        // Replace the old hash table with the new one
+        *ptr_ht = new_ht;
+    }
+    
+    // Insert the new data into the (possibly resized) hash table
+    hash_chain_insert(num_data_items, ptr_data, ptr_ht);
 
-	for (int i = 0;i< num_data_items;i++){
-		unsigned int num=ptr_data[i];
-		// getting the value of position
-		int pos = 0,pow_var = 24;
-		for (int i = 0;i<4;i++){
-			int val = num / (int)pow(2,pow_var);
-			num = num % (int)pow(2,pow_var);
-			pow_var -=8;
-			pos += val * ht.ptr_coeffs[i];
-		}
-		pos %= (int) ht.prime;
-		num=ptr_data[i];
-		list_node* head = ht.ptr_table[pos];
-		list_node* newNode = create_node(num);
-		newNode->ptr_next = head;
-		ht.ptr_table[pos] = newNode;
-
-	}
-
-	return ht;
-	
-
+    return *ptr_ht;
 }
+
 
 
 
