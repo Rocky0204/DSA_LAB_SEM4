@@ -310,9 +310,7 @@ int hash_chain_insert(int num_data_items, unsigned int* ptr_data, Hash_Table* pt
 int hash_chain_search(Hash_Table* ptr_ht, int data_size, unsigned int* ptr_data, int* ptr_flag) {
     for (int i = 0; i < data_size; i++) {
         unsigned int num = ptr_data[i];
-        
         int pos = (num * ptr_ht->ptr_coeffs[0] + num) % ptr_ht->prime;
-
         list_node* head = ptr_ht->ptr_table[pos];
         while (head != NULL) {
             if (head->data == num) {
@@ -336,12 +334,9 @@ int hash_chain_search(Hash_Table* ptr_ht, int data_size, unsigned int* ptr_data,
 int hash_chain_delete(Hash_Table* ptr_ht, int data_size, unsigned int* ptr_data, int* ptr_flag) {
     for (int i = 0; i < data_size; i++) {
         unsigned int num = ptr_data[i];
-        
         int pos = (num * ptr_ht->ptr_coeffs[0] + num) % ptr_ht->prime;
-
         list_node* head = ptr_ht->ptr_table[pos];
         list_node* prev = NULL;
-
         while (head != NULL) {
             if (head->data == num) {
                 ptr_flag[i] = 1;
@@ -350,7 +345,6 @@ int hash_chain_delete(Hash_Table* ptr_ht, int data_size, unsigned int* ptr_data,
             prev = head;
             head = head->ptr_next;
         }
-
         if (ptr_flag[i]) {
             if (prev == NULL) {
                 ptr_ht->ptr_table[pos] = head->ptr_next;
@@ -379,13 +373,9 @@ hash_chain_resize_insert: Insert a given list of data items into a given hash ta
 */
 
 Hash_Table hash_chain_resize_insert(int num_data_items, unsigned int* ptr_data, Hash_Table* ptr_ht) {
-    // Check if resizing is necessary
     if (ptr_ht->num_elements + num_data_items > ptr_ht->prime / 2) {
-        // Initialize a larger hash table with double the prime capacity
         int new_size = ptr_ht->prime * 2;
         Hash_Table new_ht = init_hash_table(new_size);
-        
-        // Rehash existing data into the new table
         for (int i = 0; i < ptr_ht->prime; i++) {
             list_node* node = ptr_ht->ptr_table[i];
             while (node != NULL) {
@@ -393,21 +383,11 @@ Hash_Table hash_chain_resize_insert(int num_data_items, unsigned int* ptr_data, 
                 node = node->ptr_next;
             }
         }
-        
-        // Replace the old hash table with the new one
         *ptr_ht = new_ht;
     }
-    
-    // Insert the new data into the (possibly resized) hash table
     hash_chain_insert(num_data_items, ptr_data, ptr_ht);
-
     return *ptr_ht;
 }
-
-
-
-
-
 /**************************************************** Section 3: Testing Functions ***********************************************************/
 
 /************ Data structure for test data *************************************************************/
