@@ -1,4 +1,6 @@
 /*
+NAME: SWADHA SWAROOP
+ROLL: 1122201009
 	Course:		CS2130 DSA Lab 
 	Semester:	2024 Jan-Apr
 	Lab:		Week 12 | 18/Apr/2024
@@ -9,9 +11,7 @@
 		Task 2 (divided into a,b,c): Given the adjacency list of a digraph and a source node list single source shortest paths to all the nodes from the source.
 		
 		
-	Note: 1)The tasks are given in Section 3. Section 1 contains some helper functions which you may not require, and Section 2 contains some previously implemented functions which you may 	            require.
-	      2) You may have to use some stack functionality. For that, stack-on-array.c has been included. You can directly call those functions.		
-	
+	Note: The tasks are given in Section 3. Section 1 contains some helper functions which you may not require, and Section 2 contains some previously implemented functions which you may 	            require.	
 				
 	
 */
@@ -242,7 +242,25 @@ list_node** get_reverse_adjacency_list (int order, list_node** adjacency_list){
 
 int dfs_explore_with_finish_time(int order, list_node** adjacency_list, int node_index, int * visited, int* clk,  int * finish_order){
 	
+	list_node* ptr_list;
+	ptr_list = adjacency_list[node_index];
+	int child_index;
 	
+	visited[node_index] = 1;
+	
+	
+	while (ptr_list != NULL){
+		child_index = ptr_list -> node_index;
+		if (visited[child_index] == 0){
+			dfs_explore_with_finish_time (order, adjacency_list, child_index, visited,  clk, finish_order);
+				
+		}
+		
+		ptr_list = ptr_list -> ptr_sibling;	
+	}
+	 
+	finish_order [order-*clk] = node_index;
+	(*clk)++;
 	return 0;
 	
 }
@@ -255,11 +273,24 @@ int dfs_explore_with_finish_time(int order, list_node** adjacency_list, int node
 /*			i) pointer to an array where the vertices are arranged as per finish time of DFS in the reverse order. If finish_order[i1] = v1 and finish_order[i2] =v2, where   i1 > i2, then the DFS has finished at node v1 before finishing at node v2.*/
 
 int* finish_time_order (int order, list_node** adjacency_list){
-	
-
+	int clk = 1;
+	int i;
+	int * visited;
 	int * finished_order;
-
-
+	int* finished;
+	
+	
+	
+	visited = (int*) calloc (order, sizeof(int));
+	finished_order = (int*) malloc (order * sizeof(int));
+	
+	
+	for (i =0; i < order; i++){
+		if(visited[i] == 0){
+			dfs_explore_with_finish_time(order, adjacency_list, i, visited, &clk, finished_order);
+		}
+	}
+	
 	return finished_order;
 		
 }
@@ -271,8 +302,48 @@ int* finish_time_order (int order, list_node** adjacency_list){
 
 list_node** strong_components(int order, list_node** adjacency_list){
 	
-	
+	int i, j=0;
+	int * ptr_finish;
+	int * ptr_visited;
+	int node_index;
+
+	list_node** reverse_adjacency_list;
 	list_node** ptr_scc;
+	
+	
+	
+	ptr_finish = (int*) calloc (order, sizeof(int));
+
+	
+	ptr_scc = (list_node**) malloc (order * sizeof (list_node*));
+	
+	for (i = 0 ; i < order; i++){
+		ptr_scc[i] = NULL;
+	}
+
+	
+	
+
+	
+	reverse_adjacency_list = (list_node**) malloc (order * sizeof (list_node*));
+	
+	reverse_adjacency_list = get_reverse_adjacency_list (order, adjacency_list);
+	ptr_finish = finish_time_order(order, reverse_adjacency_list);
+	
+	ptr_visited = (int*) calloc(order, sizeof(int));
+
+	
+	for (i = 0 ; i < order; i++){
+		node_index = ptr_finish[i];
+		if (ptr_visited[node_index] == 0){
+
+			ptr_scc[j] = dfs_explore(order, adjacency_list, node_index, ptr_visited);
+			
+		
+		}
+		j++;
+		
+	}
 	
 	return ptr_scc;
 	
@@ -294,6 +365,9 @@ typedef struct {
 /*Task 2(a)[i]: init_queue. Initialize the queue.*/
 Queue init_queue(){
 	Queue new_queue;
+	new_queue.ptr_front = NULL;
+	new_queue.ptr_rear = NULL;
+	new_queue.size = 0;
 	
 	return new_queue;
 }
@@ -301,6 +375,18 @@ Queue init_queue(){
 /*Task 2(a)[ii]: enque. Given a queue and an item, add the item to the queue.*/
 
 int enque (Queue* ptr_queue, int item){
+	   list_node* ptr_new;
+	   ptr_new = create_node(item);
+	   
+	   if(ptr_queue->size == 0){
+	   	ptr_queue->ptr_rear = ptr_new;
+	   	ptr_queue->ptr_front = ptr_new;
+	   	
+	   } else{
+		ptr_queue->ptr_rear->ptr_sibling = ptr_new;
+	   	ptr_queue->ptr_rear = ptr_new;
+	   }
+	   ptr_queue->size = ptr_queue->size+1;
 	   
 	   return 0;
 	   
@@ -311,7 +397,22 @@ int enque (Queue* ptr_queue, int item){
 
 int deque (Queue* ptr_queue){
 	
+	int temp;
+	list_node* ptr_temp;
 	
+	if(ptr_queue->size == 0){
+		return -1;
+	}
+	
+	ptr_temp = ptr_queue->ptr_front;
+	
+	ptr_queue->ptr_front = ptr_temp->ptr_sibling;
+	
+	ptr_queue->size= ptr_queue->size-1;
+	
+	
+	temp = ptr_temp->node_index;
+	free(ptr_temp);
 	return temp;
 	
 }
@@ -349,8 +450,54 @@ typedef struct {
 
 BFS_Data BFS(int order, list_node** adjacency_list, int node_index){
 
+	int* ptr_visited;
+	int parent_index, child_index, i, j;
 	
+	list_node** ptr_path_list;
+	list_node* ptr_new_node;
+	list_node* ptr_temp;
+	
+	Queue q;
+	list_node* ptr_child;
+	int* ptr_distance;
+	int* ptr_parent;
 	BFS_Data bfs_lists;
+	
+
+	ptr_distance = (int*) malloc(order* sizeof(int));
+	ptr_parent = (int*) malloc(order* sizeof(int));
+	ptr_path_list = (list_node**) malloc (order* sizeof(list_node*));
+
+	
+	int LARGE_VALUE = 2*order;
+	for (i =0; i < order; i++){
+		ptr_distance[i] = LARGE_VALUE;
+	}
+	for (i = 0; i< order; i++){
+		ptr_parent[i] = -1;
+	}
+
+	q = init_queue();
+	ptr_distance[node_index] = 0;
+	
+	
+	enque(&q, node_index);
+
+	while(q.size != 0){
+		parent_index = deque(&q);
+		ptr_child = adjacency_list[parent_index];
+		while(ptr_child != NULL){
+			child_index = ptr_child->node_index;
+			if(ptr_distance[child_index] > ptr_distance[parent_index]+1){
+				ptr_distance[child_index] = ptr_distance[parent_index]+1;
+				ptr_parent[child_index] = parent_index;
+				enque(&q,child_index);
+			}
+			ptr_child = ptr_child->ptr_sibling;
+		}
+	}
+	bfs_lists.ptr_sp_length = ptr_distance;
+	bfs_lists.ptr_parent = ptr_parent;
 	
 	return bfs_lists;
 	
@@ -371,13 +518,58 @@ BFS_Data BFS(int order, list_node** adjacency_list, int node_index){
 
 int sssp(int order, list_node** adjacency_list, int source_index){
 
+	BFS_Data bfs_lists;
+	int d,i,j,k, sp_length;
+	bfs_lists = BFS(order, adjacency_list, source_index);
+	int LARGE_VALUE = 2*order;
+	Stack s;
+	char c;
 	
-	
-	return 0;
+	for(i=0; i< order; i++){
+		sp_length = bfs_lists.ptr_sp_length[i];
+		
+		if (sp_length == LARGE_VALUE){
+			
+			printf("There is no path from %d to %d\n", source_index, i);
+		} else {
+			
+			printf ("Distance of %d from source %d = %d\n", i, source_index, sp_length);
+			printf("\n");
+			init(&s);
+			if (i < 10){
+				push(&s,'0'+i);
+			}else{
+				push(&s,'a'+i-10);
+			}
+
+			j = bfs_lists.ptr_parent[i];
+			
+			while(j!=-1){
+
+				push(&s, '-');
+				if(j<10){
+					push(&s,'0'+j);
+				}else{
+					push(&s,'a'+j-10);
+				}				
+				j = bfs_lists.ptr_parent[j];
+			}
+			printf ("One of the shortest paths from source %d to destination %d is \n", source_index, i );
+			for(k = 0;; k++) {
+				c = pop(&s);
+				if (c == '$') {
+					printf("\n");
+					break;
+				}
+				printf("%c", c);
+			}
+
+		}
+			
+		printf("\n\n");
+	} 
 }
 
-
-/****************************************************************************************************************************************************************/
 
 /****************************************************************************************************************************************************************/
 
@@ -402,230 +594,230 @@ int main(){
 
 /*********************** Task 1********************************************/
 	
-/*	printf("**********************Testing Tasks 1(a) and 1(b) ********************\n");*/
+	printf("**********************Testing Tasks 1(a) and 1(b) ********************\n");
 
-/*        int* dfs_finish_order;*/
-/*        */
-/*        printf("****Running Task 1(a) and 1(b) on Graph 1*******\n\n");*/
-/*        adjacency_list = create_adjacency_list(graph1,&order);*/
-/*	dfs_finish_order = (int*) malloc (order* sizeof(int));*/
-/*        dfs_finish_order = finish_time_order (order, adjacency_list);*/
-/*        printf("Ordering the nodes according to DFS finish time\n\n");*/
-/*        for (i =0; i< order; i++){*/
-/*        	printf("%d", dfs_finish_order[order-1-i]);*/
-/*        }*/
-/*        printf("\n\n");*/
-/*        free_adjacency_list(adjacency_list, order);*/
-/*        free(dfs_finish_order);*/
-/*        */
-/*        printf("****Running Task 1(a) and 1(b) on Graph 2****\n\n");*/
-/*        adjacency_list = create_adjacency_list(graph2,&order);*/
-/*	dfs_finish_order = (int*) malloc (order* sizeof(int));*/
-/*        dfs_finish_order = finish_time_order (order, adjacency_list);*/
-/*        printf("Ordering the nodes according to DFS finish time\n\n");*/
-/*        for (i =0; i< order; i++){*/
-/*        	printf("%d", dfs_finish_order[order-1-i]);*/
-/*        }*/
-/*        printf("\n\n");*/
-/*        free_adjacency_list(adjacency_list, order);*/
-/*        free(dfs_finish_order);*/
-/*        */
-/*        printf("****Running Task 1(a) and 1(b) on Graph 3****\n\n");*/
-/*        adjacency_list = create_adjacency_list(graph3,&order);*/
-/*	dfs_finish_order = (int*) malloc (order* sizeof(int));*/
-/*        dfs_finish_order = finish_time_order (order, adjacency_list);*/
-/*        printf("Ordering the nodes according to DFS finish time\n\n");*/
-/*        for (i =0; i< order; i++){*/
-/*        	printf("%d", dfs_finish_order[order-1-i]);*/
-/*        }*/
-/*        printf("\n\n");*/
-/*        free_adjacency_list(adjacency_list, order);*/
-/*        free(dfs_finish_order);*/
+        int* dfs_finish_order;
+        
+        printf("****Running Task 1(a) and 1(b) on Graph 1*******\n\n");
+        adjacency_list = create_adjacency_list(graph1,&order);
+	dfs_finish_order = (int*) malloc (order* sizeof(int));
+        dfs_finish_order = finish_time_order (order, adjacency_list);
+        printf("Ordering the nodes according to DFS finish time\n\n");
+        for (i =0; i< order; i++){
+        	printf("%d", dfs_finish_order[order-1-i]);
+        }
+        printf("\n\n");
+        free_adjacency_list(adjacency_list, order);
+        free(dfs_finish_order);
+        
+        printf("****Running Task 1(a) and 1(b) on Graph 2****\n\n");
+        adjacency_list = create_adjacency_list(graph2,&order);
+	dfs_finish_order = (int*) malloc (order* sizeof(int));
+        dfs_finish_order = finish_time_order (order, adjacency_list);
+        printf("Ordering the nodes according to DFS finish time\n\n");
+        for (i =0; i< order; i++){
+        	printf("%d", dfs_finish_order[order-1-i]);
+        }
+        printf("\n\n");
+        free_adjacency_list(adjacency_list, order);
+        free(dfs_finish_order);
+        
+        printf("****Running Task 1(a) and 1(b) on Graph 3****\n\n");
+        adjacency_list = create_adjacency_list(graph3,&order);
+	dfs_finish_order = (int*) malloc (order* sizeof(int));
+        dfs_finish_order = finish_time_order (order, adjacency_list);
+        printf("Ordering the nodes according to DFS finish time\n\n");
+        for (i =0; i< order; i++){
+        	printf("%d", dfs_finish_order[order-1-i]);
+        }
+        printf("\n\n");
+        free_adjacency_list(adjacency_list, order);
+        free(dfs_finish_order);
 
 	
-/*	printf("**********************Testing Task 1(c) ********************\n");*/
-/*	*/
-/*        printf("****Running Task 1(c) on Graph 1****\n\n");*/
-/*	adjacency_list = create_adjacency_list(graph1,&order);*/
-/*	*/
-/*	scc = strong_components(order, adjacency_list);*/
-/*	printf("Strong components \n");*/
-/*	*/
-/*	for(i=0; i< order; i++){*/
-/*		if (scc[i] != NULL){*/
-/*			printf("\n");*/
-/*			print_list(scc[i]);*/
-/*		}*/
-/*	}*/
-/*	printf("\n\n");*/
-/*	free_adjacency_list(adjacency_list, order);*/
-/*	free_adjacency_list(scc, order);*/
-/*	*/
-/*	*/
-/*	*/
-/*	printf("****Running Task 1(c) on Graph 2****\n\n");*/
+	printf("**********************Testing Task 1(c) ********************\n");
+	
+        printf("****Running Task 1(c) on Graph 1****\n\n");
+	adjacency_list = create_adjacency_list(graph1,&order);
+	
+	scc = strong_components(order, adjacency_list);
+	printf("Strong components \n");
+	
+	for(i=0; i< order; i++){
+		if (scc[i] != NULL){
+			printf("\n");
+			print_list(scc[i]);
+		}
+	}
+	printf("\n\n");
+	free_adjacency_list(adjacency_list, order);
+	free_adjacency_list(scc, order);
+	
+	
+	
+	printf("****Running Task 1(c) on Graph 2****\n\n");
 
-/*	adjacency_list = create_adjacency_list(graph2,&order);*/
-/*	*/
-/*	scc = strong_components(order, adjacency_list);*/
-/*	printf("\n Strong components \n");*/
-/*	*/
-/*	for(i=0; i< order; i++){*/
-/*		if (scc[i] != NULL){*/
-/*			printf("\n");*/
-/*			print_list(scc[i]);*/
-/*		}*/
-/*	}*/
-/*	printf("\n\n");*/
-/*	free_adjacency_list(adjacency_list, order);*/
-/*	free_adjacency_list(scc, order);*/
-/*	*/
-/*	printf("****Running Task 1(c) on Graph 3****\n\n");*/
-/*	adjacency_list = create_adjacency_list(graph3,&order);*/
-/*	*/
-/*	scc = strong_components(order, adjacency_list);*/
-/*	*/
-/*	printf("Strong components \n");*/
-/*	*/
-/*	for(i=0; i< order; i++){*/
-/*		if (scc[i] != NULL){*/
-/*			printf("\n");*/
-/*			print_list(scc[i]);*/
-/*		}*/
-/*	}*/
-/*	*/
-/*	free_adjacency_list(adjacency_list, order);*/
-/*	free_adjacency_list(scc, order);*/
-/*	*/
-/*	printf("\n\n");*/
+	adjacency_list = create_adjacency_list(graph2,&order);
+	
+	scc = strong_components(order, adjacency_list);
+	printf("\n Strong components \n");
+	
+	for(i=0; i< order; i++){
+		if (scc[i] != NULL){
+			printf("\n");
+			print_list(scc[i]);
+		}
+	}
+	printf("\n\n");
+	free_adjacency_list(adjacency_list, order);
+	free_adjacency_list(scc, order);
+	
+	printf("****Running Task 1(c) on Graph 3****\n\n");
+	adjacency_list = create_adjacency_list(graph3,&order);
+	
+	scc = strong_components(order, adjacency_list);
+	
+	printf("Strong components \n");
+	
+	for(i=0; i< order; i++){
+		if (scc[i] != NULL){
+			printf("\n");
+			print_list(scc[i]);
+		}
+	}
+	
+	free_adjacency_list(adjacency_list, order);
+	free_adjacency_list(scc, order);
+	
+	printf("\n\n");
 /*************** Task 2 ************************************/
 
 /*************** Task 2(a)****************************/
-/*	printf("*******************Testing task 2(a)*********************\n");*/
-/*	Queue q;*/
-/*	int num_items = 8;*/
-/*	int half_num_items = num_items/2;*/
-/*	int item, num;*/
-/*	*/
-/*	q = init_queue();*/
-/*	srand(time(0));*/
-/*	*/
-/*	*/
-/*	for (i = 0; i< num_items; i++){*/
-/*		*/
-/*		item  = rand()% (num_items+1); */
-/*		printf ("Adding %d to the queue\n", item);*/
-/*		enque(&q, item);*/
-/*	}*/
-/*	printf("Printing the items of the queue\n");*/
-/*	print_queue(q);*/
-/*	printf("Dequeuing ...\n");*/
-/*	for(i =0;i < half_num_items; i++){*/
-/*		j = deque(&q);*/
-/*		printf("Dequeued %d\n", j);*/
-/*	}*/
-/*	printf("Size of the queue = %d\n", q.size);*/
-/*	printf("Printing the items of the queue\n");*/
-/*	print_queue(q);*/
-/*	j = deque(&q);*/
-/*	*/
-/*	while(j != -1){*/
-/*		printf("Dequed %d\n", j);*/
-/*		j = deque(&q);*/
-/*	}*/
-/*	if(q.size == 0){*/
-/*		printf("Queue is empty \n");*/
-/*	}*/
+	printf("*******************Testing task 2(a)*********************\n");
+	Queue q;
+	int num_items = 8;
+	int half_num_items = num_items/2;
+	int item, num;
+	
+	q = init_queue();
+	srand(time(0));
+	
+	
+	for (i = 0; i< num_items; i++){
+		
+		item  = rand()% (num_items+1); 
+		printf ("Adding %d to the queue\n", item);
+		enque(&q, item);
+	}
+	printf("Printing the items of the queue\n");
+	print_queue(q);
+	printf("Dequeuing ...\n");
+	for(i =0;i < half_num_items; i++){
+		j = deque(&q);
+		printf("Dequeued %d\n", j);
+	}
+	printf("Size of the queue = %d\n", q.size);
+	printf("Printing the items of the queue\n");
+	print_queue(q);
+	j = deque(&q);
+	
+	while(j != -1){
+		printf("Dequed %d\n", j);
+		j = deque(&q);
+	}
+	if(q.size == 0){
+		printf("Queue is empty \n");
+	}
 
  /*************** Task 2(b) ****************************/
-/* 	printf("*******************Testing task 2(b)*********************\n");*/
-/* 	BFS_Data bfs;*/
-/* 	int index =0;*/
-/* 	*/
-/* 	printf("****Running Task 2(b) on Graph 1****\n\n");*/
-/* 	adjacency_list = create_adjacency_list(graph1, &order);*/
-/* 	bfs = BFS(order, adjacency_list, index);*/
-/* 	printf ("Shortest path list for BFS with source = %d\n\n", index);*/
-/* 	for (j =0; j< order; j++){*/
-/* 		printf("%d -- %d\n",j, bfs.ptr_sp_length[j]);*/
-/* 	}*/
-/* 	printf ("Parent list for BFS with source = %d\n\n", index);*/
-/* 	for (j =0; j< order; j++){*/
-/* 		printf("%d -- %d\n",j, bfs.ptr_parent[j]);*/
-/* 	}*/
-/* 	free_adjacency_list(adjacency_list, order);*/
-/*	printf("\n\n");*/
-/*	*/
-/*	printf("****Running Task 2(b) on Graph 2****\n\n");*/
-/*	adjacency_list = create_adjacency_list(graph2, &order);*/
-/* 	bfs = BFS(order, adjacency_list, index);*/
-/* 	printf ("Shortest path list for BFS with source = %d\n\n", index);*/
-/* 	for (j =0; j< order; j++){*/
-/* 		printf("%d -- %d\n",j, bfs.ptr_sp_length[j]);*/
-/* 	}*/
-/* 	printf ("Parent list for BFS with source = %d\n\n", index);*/
-/* 	for (j =0; j< order; j++){*/
-/* 		printf("%d -- %d\n",j, bfs.ptr_parent[j]);*/
-/* 	}*/
-/* 	free_adjacency_list(adjacency_list, order);*/
-/*	printf("\n\n");*/
-/*	*/
-/*	printf("****Running Task 2(b) on Graph 3****\n\n");*/
-/*	adjacency_list = create_adjacency_list(graph3, &order);*/
-/* 	bfs = BFS(order, adjacency_list, index);*/
-/* 	printf ("Shortest path list for BFS with source = %d\n\n", index);*/
-/* 	for (j =0; j< order; j++){*/
-/* 		printf("%d -- %d\n",j, bfs.ptr_sp_length[j]);*/
-/* 	}*/
-/* 	printf ("Parent list for BFS with source = %d\n\n", index);*/
-/* 	for (j =0; j< order; j++){*/
-/* 		printf("%d -- %d\n",j, bfs.ptr_parent[j]);*/
-/* 	}*/
-/* 	free_adjacency_list(adjacency_list, order);*/
-/*	printf("\n\n");*/
-/* 	*/
-/* 	printf("****Running Task 2(b) on Graph 4****\n\n");*/
-/* 	adjacency_list = create_adjacency_list(graph4, &order);*/
-/* 	bfs = BFS(order, adjacency_list, index);*/
-/* 	printf ("Shortest path list for BFS with source = %d\n\n", index);*/
-/* 	for (j =0; j< order; j++){*/
-/* 		printf("%d -- %d\n",j, bfs.ptr_sp_length[j]);*/
-/* 	}*/
-/* 	printf ("Parent list for BFS with source = %d\n\n", index);*/
-/* 	for (j =0; j< order; j++){*/
-/* 		printf("%d -- %d\n",j, bfs.ptr_parent[j]);*/
-/* 	}*/
-/* 	free_adjacency_list(adjacency_list, order);*/
-/*	printf("\n\n");*/
+ 	printf("*******************Testing task 2(b)*********************\n");
+ 	BFS_Data bfs;
+ 	int index =0;
+ 	
+ 	printf("****Running Task 2(b) on Graph 1****\n\n");
+ 	adjacency_list = create_adjacency_list(graph1, &order);
+ 	bfs = BFS(order, adjacency_list, index);
+ 	printf ("Shortest path list for BFS with source = %d\n\n", index);
+ 	for (j =0; j< order; j++){
+ 		printf("%d -- %d\n",j, bfs.ptr_sp_length[j]);
+ 	}
+ 	printf ("Parent list for BFS with source = %d\n\n", index);
+ 	for (j =0; j< order; j++){
+ 		printf("%d -- %d\n",j, bfs.ptr_parent[j]);
+ 	}
+ 	free_adjacency_list(adjacency_list, order);
+	printf("\n\n");
+	
+	printf("****Running Task 2(b) on Graph 2****\n\n");
+	adjacency_list = create_adjacency_list(graph2, &order);
+ 	bfs = BFS(order, adjacency_list, index);
+ 	printf ("Shortest path list for BFS with source = %d\n\n", index);
+ 	for (j =0; j< order; j++){
+ 		printf("%d -- %d\n",j, bfs.ptr_sp_length[j]);
+ 	}
+ 	printf ("Parent list for BFS with source = %d\n\n", index);
+ 	for (j =0; j< order; j++){
+ 		printf("%d -- %d\n",j, bfs.ptr_parent[j]);
+ 	}
+ 	free_adjacency_list(adjacency_list, order);
+	printf("\n\n");
+	
+	printf("****Running Task 2(b) on Graph 3****\n\n");
+	adjacency_list = create_adjacency_list(graph3, &order);
+ 	bfs = BFS(order, adjacency_list, index);
+ 	printf ("Shortest path list for BFS with source = %d\n\n", index);
+ 	for (j =0; j< order; j++){
+ 		printf("%d -- %d\n",j, bfs.ptr_sp_length[j]);
+ 	}
+ 	printf ("Parent list for BFS with source = %d\n\n", index);
+ 	for (j =0; j< order; j++){
+ 		printf("%d -- %d\n",j, bfs.ptr_parent[j]);
+ 	}
+ 	free_adjacency_list(adjacency_list, order);
+	printf("\n\n");
+ 	
+ 	printf("****Running Task 2(b) on Graph 4****\n\n");
+ 	adjacency_list = create_adjacency_list(graph4, &order);
+ 	bfs = BFS(order, adjacency_list, index);
+ 	printf ("Shortest path list for BFS with source = %d\n\n", index);
+ 	for (j =0; j< order; j++){
+ 		printf("%d -- %d\n",j, bfs.ptr_sp_length[j]);
+ 	}
+ 	printf ("Parent list for BFS with source = %d\n\n", index);
+ 	for (j =0; j< order; j++){
+ 		printf("%d -- %d\n",j, bfs.ptr_parent[j]);
+ 	}
+ 	free_adjacency_list(adjacency_list, order);
+	printf("\n\n");
  /*************** Task 2(c) ****************************/
  
-/* 	printf("******************Task 2(c)*****************\n");	*/
-/* 	*/
-/* 	printf("****Running Task 2(c) on Graph 1****\n\n");*/
-/*	adjacency_list = create_adjacency_list(graph1, &order);*/
-/*	sssp(order, adjacency_list,0);*/
+ 	printf("******************Task 2(c)*****************\n");	
+ 	
+ 	printf("****Running Task 2(c) on Graph 1****\n\n");
+	adjacency_list = create_adjacency_list(graph1, &order);
+	sssp(order, adjacency_list,0);
 
-/*	free_adjacency_list(adjacency_list, order);*/
-/*	printf("\n\n");*/
-/*	*/
-/*	printf("****Running Task 2(c) on Graph 2****\n\n");*/
-/*	adjacency_list = create_adjacency_list(graph2, &order);*/
-/*	sssp(order, adjacency_list,0);*/
+	free_adjacency_list(adjacency_list, order);
+	printf("\n\n");
+	
+	printf("****Running Task 2(c) on Graph 2****\n\n");
+	adjacency_list = create_adjacency_list(graph2, &order);
+	sssp(order, adjacency_list,0);
 
-/*	free_adjacency_list(adjacency_list, order);*/
-/*	printf("\n\n");*/
-/*	*/
-/*	printf("****Running Task 2(c) on Graph 3****\n\n");*/
-/*	adjacency_list = create_adjacency_list(graph3, &order);*/
-/*	sssp(order, adjacency_list,0);*/
-/*	free_adjacency_list(adjacency_list, order);*/
-/*	printf("\n\n");*/
-/*	*/
-/*	printf("****Running Task 2(c) on Graph 4****\n\n");*/
-/*	adjacency_list = create_adjacency_list(graph4, &order);*/
-/*	sssp(order, adjacency_list,0);*/
-/*	free_adjacency_list(adjacency_list, order);*/
-/*	printf("\n\n");*/
+	free_adjacency_list(adjacency_list, order);
+	printf("\n\n");
+	
+	printf("****Running Task 2(c) on Graph 3****\n\n");
+	adjacency_list = create_adjacency_list(graph3, &order);
+	sssp(order, adjacency_list,0);
+	free_adjacency_list(adjacency_list, order);
+	printf("\n\n");
+	
+	printf("****Running Task 2(c) on Graph 4****\n\n");
+	adjacency_list = create_adjacency_list(graph4, &order);
+	sssp(order, adjacency_list,0);
+	free_adjacency_list(adjacency_list, order);
+	printf("\n\n");
 
 
 
@@ -633,6 +825,5 @@ int main(){
 	return 0;
 }
 	
-
 	
 	

@@ -1,4 +1,6 @@
 /*
+NAME: SWADHA SWAROOP
+ROLL: 112201009
 	Course:		CS2130 DSA Lab 
 	Semester:	2024 Jan-Apr
 	Lab:		Week 12 | 04/Apr/2024
@@ -36,6 +38,8 @@ list_node* create_node (int node_index){
 
 /* Print List: Helper function to print the elements of a given list. */
 int print_list (list_node* ptr_list_node){
+	
+
 
 	while (ptr_list_node != NULL){
 		printf ("%d ", ptr_list_node-> node_index);
@@ -71,6 +75,7 @@ list_node** create_adjacency_list (char* file_name, int * order){
 		
 		for (i = 0; i < temp; i++){
 			fgets(row,(temp+2), graph_data);
+			adjacency_list[i] = NULL;
 			
 			for (j=0; j < temp; j++){
 				if((row[j] - '0') == 1) {
@@ -85,12 +90,35 @@ list_node** create_adjacency_list (char* file_name, int * order){
 
 		fclose(graph_data);
 	}
-	
+
 	return adjacency_list;
 }
 
+int free_list(list_node* list){
 
+		if (list == NULL){
+			return 0;
+		}
 
+		if(list-> ptr_sibling != NULL){
+			free_list(list-> ptr_sibling);
+		}
+		free(list);
+		
+		return 0;
+}
+
+int free_adjacency_list (list_node** list, int order){
+	int i;
+	for (i=0; i < order ; i++){
+
+		free_list(list[i]);
+	}
+	
+	free(list);
+	
+	return 0;
+}
 
 
 
@@ -108,16 +136,43 @@ It is divided into the following two subtasks.
 				       iii) node_index: Index of the node from which DFS will start.
 				       iv) visited: Pointer to an array (indexed by node indices) indicating the list of nodes already visited by the DFS. A node is visited when the DFS reaches the 						   node for the first time.  visited[i] = 1 if the node i has been visited, otherwise visited[i] = 0.
 				        
-				 Output: i) reachable_set: A list of nodes reachable by the DFS from the starting node. Assume/ note that a node is reachable from itself. 
+				 Output: i) A list of nodes reachable by the DFS from the starting node. Assume/ note that a node is reachable from itself. 
 				 	   visited array should be updated accordingly.
  */
 list_node* dfs_explore(int order, list_node** adjacency_list, int node_index, int * visited){
 	
-	
+	int child_index;
+	list_node* ptr_list = NULL;
+	list_node* ptr_list2 = NULL;
+	list_node* ptr_new = NULL;
 	list_node* reachable_set = NULL;
 	
 	
+	ptr_list = adjacency_list[node_index];
+	visited[node_index] = 1;
 	
+
+	
+	while (ptr_list != NULL){
+		child_index = ptr_list -> node_index;
+		if (visited[child_index] == 0){
+			ptr_new = dfs_explore (order, adjacency_list, child_index, visited);
+			ptr_list2 = ptr_new;
+			while (ptr_list2 -> ptr_sibling != NULL){
+				ptr_list2 = ptr_list2-> ptr_sibling;
+			}
+			ptr_list2->ptr_sibling = reachable_set;
+			reachable_set = ptr_new;
+			
+		}
+		ptr_list = ptr_list -> ptr_sibling;	
+			
+			 
+	}
+	
+	ptr_new = create_node(node_index);
+	ptr_new -> ptr_sibling = reachable_set;
+	reachable_set = ptr_new;
 	
 	return reachable_set;
 }
@@ -128,15 +183,20 @@ list_node* dfs_explore(int order, list_node** adjacency_list, int node_index, in
 				ii) adjacency_list: Pointer to the adjacency list of the graph.
 				iii) node_index: Index of the given node.
 			Output:
-				i) reachable_set: A list of nodes reachable from the given node. Assume/note that a node is reachable from itself.
+				A list of nodes reachable from the given node. Assume/note that a node is reachable from itself.
 			       	
 */
 list_node* list_reachable(int order, list_node** adjacency_list, int node_index ){
-	
+	int * visited;
+	list_node* reachable_set = NULL;
+	visited = (int*) calloc (order, sizeof(int));
+	reachable_set = dfs_explore(order, adjacency_list, node_index, visited);
 	return reachable_set;
 }
 
 /********************************************************************************************************************************
+
+
 Task 2: Goal of this task is to check whether a given directed graph is strongly connected. It is divided into the following 
 two subtasks.*/
 
@@ -144,14 +204,34 @@ two subtasks.*/
 			Input:
 				i) order: Order of the graph.
 				ii) adjacency_list: Pointer to the adjacency list of the graph.
-			Output: i) reverse_adjacency_list: Adjacency list of the reverse graph.
+			Output: Adjacency list of the reverse graph.
 */
 
 
 list_node** get_reverse_adjacency_list (int order, list_node** adjacency_list){
-	
+	int i, child_index;
 	list_node** reverse_adjacency_list;
+	reverse_adjacency_list = (list_node**) malloc (order * sizeof(list_node*));
+	list_node* ptr_list;
+	list_node* ptr_new_node;
 	
+	for (i =0; i< order; i++){
+		reverse_adjacency_list[i] = NULL;
+	}
+
+	for (i = 0; i < order; i++){
+		ptr_list = adjacency_list[i];
+		while (ptr_list != NULL){
+		
+
+			child_index = ptr_list -> node_index;
+			ptr_new_node = create_node(i);
+			ptr_new_node -> ptr_sibling = reverse_adjacency_list [child_index];
+			reverse_adjacency_list [child_index] = ptr_new_node;
+			ptr_list = ptr_list->ptr_sibling;
+		}
+		
+	}
 	
 	return reverse_adjacency_list;
 }
@@ -164,10 +244,37 @@ list_node** get_reverse_adjacency_list (int order, list_node** adjacency_list){
  
 int is_strongly_connected(int order, list_node** adjacency_list ){
 
+	list_node* ptr_list;
+	list_node** reverse_adjacency_list;
+	int count;
+	ptr_list = list_reachable(order, adjacency_list, 0);
 	
-	return 0;
-
 	
+	count = 0;
+	while (ptr_list != NULL){
+		count++;
+		ptr_list = ptr_list -> ptr_sibling;
+	}
+	
+	if (count < order){
+		return 0;
+	}
+	
+	reverse_adjacency_list = get_reverse_adjacency_list(order, adjacency_list);
+	
+	ptr_list = list_reachable(order, reverse_adjacency_list, 0);
+	
+	count = 0;
+	while (ptr_list != NULL){
+		count++;
+		ptr_list = ptr_list -> ptr_sibling;
+	}
+	
+	if (count < order){
+		return 0;
+	}
+	
+	return 1;
 }
 
 
@@ -191,10 +298,32 @@ divided into the following two subtasks*/
 				      */
 
 int dfs_explore_with_time(int order, list_node** adjacency_list, int node_index, int * visited, int* clk,  int* finished,  int * topo_order){
-
+	
+	list_node* ptr_list;
+	ptr_list = adjacency_list[node_index];
+	int child_index;
+	
+	visited[node_index] = 1;
 	
 	
-	return 0;	
+	while (ptr_list != NULL){
+		child_index = ptr_list -> node_index;
+		if (visited[child_index] == 0){
+			if (dfs_explore_with_time (order, adjacency_list, child_index, visited,  clk, finished, topo_order) == -1){
+				return -1;
+			}
+		} else if (finished[child_index] == 0){
+			return -1;
+		}
+		ptr_list = ptr_list -> ptr_sibling;	
+			
+			 
+	} 
+	topo_order [order-1-*clk] = node_index;
+	(*clk)++;
+	finished[node_index] = 1;
+	return 0;
+	
 }
 
 /* Task 3(b): topo_order. Given a digraph return a topological ordering of it or indicate that it is not possible.
@@ -205,12 +334,166 @@ int dfs_explore_with_time(int order, list_node** adjacency_list, int node_index,
 				 then u preceedes v in the order. Return NULL if there is no such order (i.e., the digraph is cyclic).*/
 				 
 int* topo_order (int order, list_node** adjacency_list){
-	
+	int clk = 0;
+	int i;
+	int * visited;
 	int * topo_order;
+	int* finished;
 	
+	
+	
+	visited = (int*) calloc (order, sizeof(int));
+	topo_order = (int*) malloc (order * sizeof(int));
+	finished = (int*) calloc (order, sizeof(int));
+	
+	
+	
+	for (i =0; i < order; i++){
+		if(visited[i] == 0){
+			if (dfs_explore_with_time(order, adjacency_list, i, visited, &clk, finished, topo_order) ==-1){
+				return NULL;
+			}
+		}
+	}
+	
+/*	for (i=0; i< order; i++){*/
+/*		printf("%d ", ptr_finish[i]);*/
+/*	}*/
 	
 	return topo_order;
 		
+}
+/*******************************************************************************************************************************************/
+/****************************************************************************************************************************************************************/
+/*int dfs_explore_scc(int order, list_node** adjacency_list, int node_index, int * finish,  list_node** ptr_scc){*/
+/*	*/
+/*	list_node* ptr_list;*/
+/*	list_node* ptr_new;*/
+/*	int child_index;*/
+/*	ptr_list = adjacency_list[node_index];*/
+/*	*/
+/*	*/
+/*	*/
+/*	finish[node_index] = -1;*/
+/*	ptr_new = create_node(node_index);*/
+/*	ptr_new -> ptr_sibling = (*ptr_scc);*/
+/*	(*ptr_scc) = ptr_new;*/
+
+/*	printf("coming to dfs explore node index = %d\n", node_index);*/
+
+/*	while (ptr_list != NULL){*/
+/*		child_index = ptr_list -> node_index;*/
+/*		if (finish[child_index] != -1){*/
+/*			dfs_explore_scc (order, reverse_adjacency_list, child_index, finish, ptr_scc);*/
+/*		} */
+/*		ptr_list = ptr_list -> ptr_sibling;*/
+/*	}*/
+/*	*/
+/*	return 0;*/
+/*}*/
+
+int dfs_explore_with_finish_time(int order, list_node** adjacency_list, int node_index, int * visited, int* clk,  int * finish_order){
+	
+	list_node* ptr_list;
+	ptr_list = adjacency_list[node_index];
+	int child_index;
+	
+	visited[node_index] = 1;
+	
+	
+	while (ptr_list != NULL){
+		child_index = ptr_list -> node_index;
+		if (visited[child_index] == 0){
+			dfs_explore_with_finish_time (order, adjacency_list, child_index, visited,  clk, finish_order);
+				
+		}
+		
+		ptr_list = ptr_list -> ptr_sibling;	
+	}
+	 
+	finish_order [order-*clk] = node_index;
+	(*clk)++;
+	return 0;
+	
+}
+
+/* Task 3(b): topo_order. Given a digraph return a topological ordering of it or indicate that it is not possible.
+			Input:
+				i) order: Order of the graph.
+				ii) adjacency_list: Pointer to the adjacency list of the graph.
+			Output: A pointer to a sequence of nodes representing a topological order: If there is an u->v edge
+				 then u preceedes v in the order. Return NULL if there is no such order (i.e., the digraph is cyclic).*/
+				 
+int* finish_time_order (int order, list_node** adjacency_list){
+	int clk = 1;
+	int i;
+	int * visited;
+	int * finished_order;
+	int* finished;
+	
+	
+	
+	visited = (int*) calloc (order, sizeof(int));
+	finished_order = (int*) malloc (order * sizeof(int));
+	
+	
+	for (i =0; i < order; i++){
+		if(visited[i] == 0){
+			dfs_explore_with_finish_time(order, adjacency_list, i, visited, &clk, finished_order);
+		}
+	}
+	
+	return finished_order;
+		
+}
+
+list_node** strong_components(int order, list_node** adjacency_list){
+	
+	int i, j=0;
+	int * ptr_finish;
+	int * ptr_visited;
+	int node_index;
+
+	list_node** reverse_adjacency_list;
+	list_node** ptr_scc;
+	
+	
+	
+	ptr_finish = (int*) calloc (order, sizeof(int));
+
+	
+	ptr_scc = (list_node**) malloc (order * sizeof (list_node*));
+	
+	for (i = 0 ; i < order; i++){
+		ptr_scc[i] = NULL;
+	}
+
+	
+	
+
+	
+	reverse_adjacency_list = (list_node**) malloc (order * sizeof (list_node*));
+	
+	reverse_adjacency_list = get_reverse_adjacency_list (order, adjacency_list);
+	ptr_finish = finish_time_order(order, reverse_adjacency_list);
+	
+	ptr_visited = (int*) calloc(order, sizeof(int));
+
+	
+	for (i = 0 ; i < order; i++){
+		node_index = ptr_finish[i];
+		if (ptr_visited[node_index] == 0){
+
+			ptr_scc[j] = dfs_explore(order, reverse_adjacency_list, node_index, ptr_visited);
+			
+		
+		}
+		j++;
+		
+	}
+	
+	return ptr_scc;
+	
 }
 
 
@@ -234,86 +517,154 @@ int main(){
 /* Task 1*/
 	printf("********************** Task 1 ********************\n");
 	
-/*	adjacency_list = create_adjacency_list(graph1,&order);*/
-/*	list = list_reachable(order, adjacency_list, 4);*/
-/*	print_list(list);*/
-	
-/*	adjacency_list = create_adjacency_list(graph2,&order);*/
-/*	list = list_reachable(order, adjacency_list, 0);*/
-/*	print_list(list);*/
-	
-/*	adjacency_list = create_adjacency_list(graph3,&order);*/
-/*	list = list_reachable(order, adjacency_list, 0);*/
-/*	print_list(list);*/
+	adjacency_list = create_adjacency_list(graph1,&order);
+	list = list_reachable(order, adjacency_list, 4);
+	print_list(list);
 
+	free_adjacency_list (adjacency_list,order);
+
+
+	
+	
+	adjacency_list = create_adjacency_list(graph2,&order);
+	list = list_reachable(order, adjacency_list, 0);
+	print_list(list);
+	free_adjacency_list (adjacency_list,order);
+
+	adjacency_list = create_adjacency_list(graph3,&order);
+	list = list_reachable(order, adjacency_list, 0);
+	print_list(list);
+	free_adjacency_list (adjacency_list,order);
 
 /*  Task 2*/
-/*	printf("********************** Task 2 ********************\n");*/
-/*	*/
-/*	adjacency_list = create_adjacency_list(graph1,&order);*/
-/*	if (is_strongly_connected(order, adjacency_list) == 1){*/
-/*		printf ("Strongly connected \n");*/
-/*	} else {*/
-/*		printf ("Not strongly connected\n");*/
-/*	}*/
-/*	*/
-/*	adjacency_list = create_adjacency_list(graph2,&order);*/
-/*	if (is_strongly_connected(order, adjacency_list) == 1){*/
-/*		printf ("Strongly connected \n");*/
-/*	} else {*/
-/*		printf ("Not strongly connected\n");*/
-/*	}*/
+	printf("********************** Task 2 ********************\n");
 	
-/*	adjacency_list = create_adjacency_list(graph3,&order);*/
-/*	if (is_strongly_connected(order, adjacency_list) == 1){*/
-/*		printf ("Strongly connected \n");*/
-/*	} else {*/
-/*		printf ("Not strongly connected\n");*/
-/*	}*/
+	adjacency_list = create_adjacency_list(graph1,&order);
+	if (is_strongly_connected(order, adjacency_list) == 1){
+		printf ("Strongly connected \n");
+	} else {
+		printf ("Not strongly connected\n");
+	}
+	
+	free_adjacency_list (adjacency_list,order);
+	
+	adjacency_list = create_adjacency_list(graph2,&order);
+	
+	if (is_strongly_connected(order, adjacency_list) == 1){
+		printf ("Strongly connected \n");
+	} else {
+		printf ("Not strongly connected\n");
+	}
+	
+	free_adjacency_list (adjacency_list,order);
+	adjacency_list = create_adjacency_list(graph3,&order);
+	if (is_strongly_connected(order, adjacency_list) == 1){
+		printf ("Strongly connected \n");
+	} else {
+		printf ("Not strongly connected\n");
+	}
 
-
+	free_adjacency_list (adjacency_list,order);
 
 
 /* Task 3*/
 
-/*	printf("********************** Task 3 ********************\n");*/
-/*	adjacency_list = create_adjacency_list(graph1,&order);*/
-/*	*/
-/*	ptr_topo_order = topo_order(order, adjacency_list);*/
-/*	if (ptr_topo_order != NULL){*/
-/*		printf("Topological order \n");*/
-/*		for (i =0; i < order; i++){*/
-/*			printf("%d ", ptr_topo_order[i]);*/
-/*		}*/
-/*	}else{*/
-/*		printf("Digraph is cyclic\n");*/
-/*	}*/
-/*	*/
-/*	*/
-/*	adjacency_list = create_adjacency_list(graph2,&order);*/
-/*	*/
-/*	ptr_topo_order = topo_order(order, adjacency_list);*/
-/*	if (ptr_topo_order != NULL){*/
-/*		printf("Topological order \n");*/
-/*		for (i =0; i < order; i++){*/
-/*			printf("%d ", ptr_topo_order[i]);*/
-/*		}*/
-/*	}else{*/
-/*		printf("Digraph is cyclic\n");*/
-/*	}*/
-/*	*/
-/*	*/
-/*	adjacency_list = create_adjacency_list(graph3,&order);*/
-/*	*/
-/*	ptr_topo_order = topo_order(order, adjacency_list);*/
-/*	if (ptr_topo_order != NULL){*/
-/*		printf("Topological order \n");*/
-/*		for (i =0; i < order; i++){*/
-/*			printf("%d ", ptr_topo_order[i]);*/
-/*		}*/
-/*	}else{*/
-/*		printf("Digraph is cyclic\n");*/
-/*	}*/
+	printf("********************** Task 3 ********************\n");
+	adjacency_list = create_adjacency_list(graph1,&order);
+	
+	ptr_topo_order = topo_order(order, adjacency_list);
+	if (ptr_topo_order != NULL){
+		printf("Topological order \n");
+		for (i =0; i < order; i++){
+			printf("%d ", ptr_topo_order[i]);
+		}
+	}else{
+		printf("Digraph is cyclic\n");
+	}
+	
+	free_adjacency_list (adjacency_list,order);
+	
+	adjacency_list = create_adjacency_list(graph2,&order);
+	
+	ptr_topo_order = topo_order(order, adjacency_list);
+	if (ptr_topo_order != NULL){
+		printf("Topological order \n");
+		for (i =0; i < order; i++){
+			printf("%d ", ptr_topo_order[i]);
+		}
+	}else{
+		printf("Digraph is cyclic\n");
+	}
+	free_adjacency_list (adjacency_list,order);
+	
+	
+	adjacency_list = create_adjacency_list(graph3,&order);
+	
+	ptr_topo_order = topo_order(order, adjacency_list);
+	if (ptr_topo_order != NULL){
+		printf("Topological order \n");
+		for (i =0; i < order; i++){
+			printf("%d ", ptr_topo_order[i]);
+		}
+	}else{
+		printf("Digraph is cyclic\n");
+	}
+	
+	free_adjacency_list (adjacency_list,order);
+	
+/* Task 4*/	
+	
+	printf("********************** Task 4 ********************\n");
+	
+	adjacency_list = create_adjacency_list(graph1,&order);
+	
+	scc = strong_components(order, adjacency_list);
+	printf("Strong components \n");
+	
+	for(i=0; i< order; i++){
+		if (scc[i] != NULL){
+			printf("\n");
+			print_list(scc[i]);
+		}
+	}
+	
+	free_adjacency_list(adjacency_list, order);
+	free_adjacency_list(scc, order);
+	
+	
+	
+	
+
+	adjacency_list = create_adjacency_list(graph2,&order);
+	scc = strong_components(order, adjacency_list);
+	printf("\n Strong components \n");
+	
+	for(i=0; i< order; i++){
+		if (scc[i] != NULL){
+			printf("\n");
+			print_list(scc[i]);
+		}
+	}
+	free_adjacency_list(adjacency_list, order);
+	free_adjacency_list(scc, order);
+	
+
+	adjacency_list = create_adjacency_list(graph3,&order);
+	
+	scc = strong_components(order, adjacency_list);
+	
+	printf("Strong components \n");
+	
+	for(i=0; i< order; i++){
+		if (scc[i] != NULL){
+						printf("\n");
+			print_list(scc[i]);		}
+	}
+	free_adjacency_list(adjacency_list, order);
+	free_adjacency_list(scc, order);
 
 	return 0;
 }
+	
+	
+	

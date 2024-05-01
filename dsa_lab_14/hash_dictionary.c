@@ -1,4 +1,6 @@
 /*
+NAME: SWADHA SWAROOP
+ROLL: 112201009
 	Course:		CS2130 DSA Lab 
 	Semester:	2024 Jan-Apr
 	Lab:		Week 13 | 25/Apr/2024
@@ -143,8 +145,24 @@ init_oa_hash_table: Initialize the parameters of the hash table given an estimat
 */
 OA_Hash_Table init_hash_oa_table(int num_data_items){
 	OA_Hash_Table ht;
+	ht.num_data = num_data_items;
+	ht.prime = next_prime(num_data_items); 
+	ht.num_collisions = 0;
+	ht.ptr_table = (unsigned int*) (malloc(sizeof(unsigned int) * ht.prime));
+	for (int i = 0;i< num_data_items; i++){
+		ht.ptr_table[i] = UINT_MAX;
+	}
 	
 	return ht;
+}
+
+/*
+gives the hash for given x and i
+*/
+int get_hash(int x,int i,int m){
+	if (i == 0 )
+		return x % m;
+	return (get_hash(x,0,m) + i) % m;
 }
 
 /*
@@ -159,7 +177,22 @@ hash_oa_insert: Insert a given list of data items into a given hash table with o
 */
 int hash_oa_insert(int num_data_items, unsigned int* ptr_data, OA_Hash_Table* ptr_oaht, int probe_seq){
 
-	
+	// printf("%d prime\n",ptr_oaht->prime);
+	for (int i =0;i< num_data_items; i++){
+		unsigned int num = ptr_data[i];
+		int y = 0,pos = -1,prime = ptr_oaht->prime;
+		int h = num % prime;
+		// printf("%u %d,\n",num,h);
+		do{
+			pos = (h++) % prime;
+			y++;
+			// printf("%d ,\n",pos);
+		}while(ptr_oaht->ptr_table[pos] != UINT_MAX);
+		if (ptr_oaht->num_collisions < y)
+			ptr_oaht->num_collisions = y;
+		// printf("%d , %d\n",pos,num);
+		ptr_oaht->ptr_table[pos] = num;
+	}
 	
 	return 0;
 }
@@ -179,6 +212,19 @@ int hash_oa_insert(int num_data_items, unsigned int* ptr_data, OA_Hash_Table* pt
 		       
 int hash_oa_search(int num_data_items, unsigned int* ptr_data, OA_Hash_Table* ptr_oaht, int* ptr_flag, int probe_seq){
 
+	for (int i =0;i< num_data_items; i++){
+		unsigned int num = ptr_data[i];
+		int y = 0,pos = -1,prime = ptr_oaht->prime;
+		int h = num % prime;
+		do{
+			pos = (h++) % prime;
+			y++;
+			if (ptr_oaht->ptr_table[pos] == num){
+				ptr_flag[i] = 1;
+				break;
+			}
+		}while(y != ptr_oaht->num_collisions);
+	}
 	
 	return 0;
 }
@@ -194,7 +240,21 @@ int hash_oa_search(int num_data_items, unsigned int* ptr_data, OA_Hash_Table* pt
 
 int hash_oa_delete(int num_data_items, unsigned int* ptr_data, OA_Hash_Table* ptr_oaht, int* ptr_flag, int probe_seq){
 
-	
+	for (int i =0;i< num_data_items; i++){
+		unsigned int num = ptr_data[i];
+		int y = 0,pos = -1,prime = ptr_oaht->prime;
+		int h = num % prime;
+		do{
+			pos = (h++) % prime;
+			y++;
+			if (ptr_oaht->ptr_table[pos] == num){
+				ptr_oaht->ptr_table[pos] = UINT_MAX;
+				ptr_flag[i] = 1;
+				break;
+			}
+		}while(y != ptr_oaht->num_collisions);
+	}
+
 	return 0;
 }
 
@@ -218,7 +278,19 @@ typedef struct {
 
 Hash_Table init_hash_table(int size){
 	Hash_Table ht;
-	
+
+	ht.num_elements = size;
+	ht.prime = next_prime(size); 
+	ht.num_collisions = 0;
+	ht.ptr_table = (list_node**) (malloc(sizeof(list_node*) * ht.prime));
+	for (int i = 0;i< size; i++){
+		ht.ptr_table[i] = NULL;
+	}
+	int LOWER = 0;
+	int UPPER = ht.prime - 1;
+	for (int i=0; i< 4;i++){
+		ht.ptr_coeffs[i] = get_random(LOWER,UPPER);
+	}
 	
 	return ht;
 }
@@ -236,9 +308,30 @@ hash_chain_insert: Insert a given list of data items into a given hash table wit
 */
 
 
+
 int hash_chain_insert(int num_data_items, unsigned int* ptr_data, Hash_Table* ptr_ht){
 	
-	
+	for (int i = 0;i< num_data_items;i++){
+		unsigned int num=ptr_data[i];
+		// getting the value of position
+		int pos = 0,pow_var = 24;
+		for (int j = 0;j<4;j++){
+			int val = num / (int)pow(2,pow_var);
+			num = num % (int)pow(2,pow_var);
+			pow_var -=8;
+			pos += val * ptr_ht->ptr_coeffs[j];
+		}
+		pos %= (int) ptr_ht->prime;
+		num=ptr_data[i];
+		list_node* head = ptr_ht->ptr_table[pos];
+		if(head != NULL){
+			ptr_ht->num_collisions ++;
+		}
+		list_node* newNode = create_node(num);
+		newNode->ptr_next = head;
+		ptr_ht->ptr_table[pos] = newNode;
+
+	}
 		
 
 	return 0;
@@ -259,8 +352,30 @@ int hash_chain_insert(int num_data_items, unsigned int* ptr_data, Hash_Table* pt
 
 
 int hash_chain_search( Hash_Table* ptr_ht, int data_size, unsigned int* ptr_data, int* ptr_flag){
+	// print_hash_table(*ptr_ht);
 
+	for (int i = 0;i< data_size;i++){
+		unsigned int num=ptr_data[i];
+		// getting the value of position
+		int pos = 0,pow_var = 24;
+		for (int j = 0;j<4;j++){
+			int val = num / (int)pow(2,pow_var);
+			num = num % (int)pow(2,pow_var);
+			pow_var -=8;
+			pos += val * ptr_ht->ptr_coeffs[j];
+		}
+		pos %= (int) ptr_ht->prime;
+		list_node* head = ptr_ht->ptr_table[pos];
+		num=ptr_data[i];
+		while (head != NULL){
+			if(head->data == num){
+				ptr_flag[i] = 1;
+				break;
+			}
+			head = head->ptr_next;
+		}
 
+	}
 	
 		
 	return 0;
@@ -275,6 +390,39 @@ int hash_chain_search( Hash_Table* ptr_ht, int data_size, unsigned int* ptr_data
 		Output: If a given data item is found in the table then it should be deleted. Update the ptr_flag array appropriately. */  
 int hash_chain_delete(Hash_Table* ptr_ht, int data_size, unsigned int* ptr_data, int* ptr_flag){
 	
+
+	for (int i = 0;i< data_size;i++){
+		unsigned int num=ptr_data[i];
+		// getting the value of position
+		int pos = 0,pow_var = 24;
+		for (int j = 0;j<4;j++){
+			int val = num / (int)pow(2,pow_var);
+			num = num % (int)pow(2,pow_var);
+			pow_var -=8;
+			pos += val * ptr_ht->ptr_coeffs[j];
+		}
+		pos %= (int) ptr_ht->prime;
+		num=ptr_data[i];
+		list_node* head = ptr_ht->ptr_table[pos];
+		list_node* prev = NULL;
+		while (head != NULL){
+			if(head->data == num){
+				ptr_flag[i] = 1;
+				break;
+			}
+			head = head->ptr_next;
+		}
+		// deleting the node
+		if (head != NULL){
+			if (prev != NULL){
+				prev->ptr_next = head->ptr_next;
+			}else{
+				ptr_ht->ptr_table[pos] = head->ptr_next;
+			}
+			free(head);
+		}
+	}
+	// print_hash_table(*ptr_ht);
 
 	return 0;
 }
@@ -296,9 +444,31 @@ hash_chain_resize_insert: Insert a given list of data items into a given hash ta
 
 Hash_Table hash_chain_resize_insert(int num_data_items, unsigned int* ptr_data, Hash_Table* ptr_ht){
 	
-	
 	Hash_Table ht;
+	if (ptr_ht->num_elements <= num_data_items){
+		ht = init_hash_table(ptr_ht->num_elements * 2);
+		ptr_ht = &ht;
 		
+	}
+
+	for (int i = 0;i< num_data_items;i++){
+		unsigned int num=ptr_data[i];
+		// getting the value of position
+		int pos = 0,pow_var = 24;
+		for (int i = 0;i<4;i++){
+			int val = num / (int)pow(2,pow_var);
+			num = num % (int)pow(2,pow_var);
+			pow_var -=8;
+			pos += val * ht.ptr_coeffs[i];
+		}
+		pos %= (int) ht.prime;
+		num=ptr_data[i];
+		list_node* head = ht.ptr_table[pos];
+		list_node* newNode = create_node(num);
+		newNode->ptr_next = head;
+		ht.ptr_table[pos] = newNode;
+
+	}
 
 	return ht;
 	
@@ -422,7 +592,11 @@ int test_hash_oa_search(OA_Hash_Table* ptr_oaht, int data_size, unsigned int* pt
 	}
 	
 	if (bflag == true){
-		printf("Search failed for index %d\n", i);
+		printf("Search failed for index %d,data : %u, %d : %d\n", i,ptr_data[i],ptr_input_flag[i],ptr_flag[i]);
+		for(int j =0;j< ptr_oaht->num_data;j++){
+			printf("%d:%d, ",j,ptr_oaht->ptr_table[j]);
+		}
+		printf("\n");
 	} else {
 		 printf ("Total cpu cycles used %f\n",(double)(end - start));
         	  printf("Average cpu cycles per data item = %f\n",((double)(end - start)/ data_size));
@@ -582,7 +756,7 @@ int test_hash_chain_delete(Hash_Table* ptr_ht, int data_size, unsigned int* ptr_
 	}
 	
 	if (bflag == true){
-		printf("Deletion failed for index %d\n", i);
+		printf("Deletion failed for index %d, %u %d\n", i,ptr_data[i],ptr_flag[i]);
 	} else {
 		 printf ("Total cpu cycles used %f\n",(double)(end - start));
         	  printf("Average cpu cycles per data item = %f\n",((double)(end - start)/ data_size));
@@ -663,7 +837,7 @@ int test_hash_chain_search2(Hash_Table* ptr_ht, int data_size, unsigned int* ptr
 	}
 	
 	if (bflag == true){
-		printf("Search test failed for insert index %d\n", i);
+		printf("Search test failed for insert index %d, %u :%p\n", i,ptr_data[i],ptr_ht->ptr_table[i]);
 	} else {
 		 
 		printf("Search test passed for insert\n");
@@ -708,89 +882,89 @@ int main(){
 
 /**************** Test Task 1*****************************************************************************/
 
-/*********** Task 1(a) ****************/
+// ********** Task 1(a) ***************
 
-/*	printf("Testing Task 1(a)...\n");*/
-/*	for (i = 1; i<=6; i++){*/
-/*	*/
-/*		printf ("*******************************************\n");*/
-/*		printf ("Inserting %d data items \n", i*num_data);*/
-
-/*		td1 = generate_data(i*num_data, del_set_block_size, del_set_num_blocks);*/
-/*		oaht1 = init_hash_oa_table(i*num_data);*/
-/*		test_hash_oa_insert(&oaht1, td1.ins_set_size, td1.ptr_insert_data,0);*/
-/*		printf("\n\n");*/
-/*		printf ("Testing insert through search\n");*/
-/*		test_hash_oa_search2(&oaht1, td1.search_set_size, td1.ptr_search_data,td1.ptr_search_pattern,0);*/
-/*		printf ("\n\n\n");*/
-/*	}*/
-
-/************** Task 1(b) ***************/
-
-/*	printf ("Testing Task 1(b)...\n");*/
-/*	*/
-/*	for (i = 1; i<=6; i++){*/
-/*	*/
-/*		printf ("*******************************************\n");*/
-/*		printf ("Inserting %d data items \n", i*num_data);*/
-
-/*		td1 = generate_data(i*num_data, del_set_block_size, del_set_num_blocks);*/
-/*		oaht1 = init_hash_oa_table(i*num_data);*/
-/*              hash_oa_insert(td1.ins_set_size, td1.ptr_insert_data, &oaht1, 0);*/
-/*		printf("\n\n");*/
-/*		printf ("Testing search...\n");*/
-/*		test_hash_oa_search(&oaht1, td1.search_set_size, td1.ptr_search_data,td1.ptr_search_pattern,0);*/
-/*		*/
-/*		printf("\n\n");*/
-/*		*/
-/*		printf("Testing delete ....\n");*/
-/*		test_hash_oa_delete(&oaht1, td1.del_set_size, td1.ptr_delete_data, td1.ptr_delete_pattern,0);*/
-/*		printf ("\n\n");*/
-/*	}*/
+	printf("Testing Task 1(a)...\n");
+	for (i = 1; i<=6; i++){
 	
-/***************** Test Task 2 ********************************************************************************/	
+		printf ("*******************************************\n");
+		printf ("Inserting %d data items \n", i*num_data);
+
+		td1 = generate_data(i*num_data, del_set_block_size, del_set_num_blocks);
+		oaht1 = init_hash_oa_table(i*num_data);
+		test_hash_oa_insert(&oaht1, td1.ins_set_size, td1.ptr_insert_data,0);
+		printf("\n\n");
+		printf ("Testing insert through search\n");
+		test_hash_oa_search2(&oaht1, td1.search_set_size, td1.ptr_search_data,td1.ptr_search_pattern,0);
+		printf ("\n\n\n");
+	}
+
+// /************** Task 1(b) ***************/
+
+	printf ("Testing Task 1(b)...\n");
+	
+	for (i = 1; i<=6; i++){
+	
+		printf ("*******************************************\n");
+		printf ("Inserting %d data items \n", i*num_data);
+
+		td1 = generate_data(i*num_data, del_set_block_size, del_set_num_blocks);
+		oaht1 = init_hash_oa_table(i*num_data);
+              hash_oa_insert(td1.ins_set_size, td1.ptr_insert_data, &oaht1, 0);
+		printf("\n\n");
+		printf ("Testing search...\n");
+		test_hash_oa_search(&oaht1, td1.search_set_size, td1.ptr_search_data,td1.ptr_search_pattern,0);
+		
+		printf("\n\n");
+		
+		printf("Testing delete ....\n");
+		test_hash_oa_delete(&oaht1, td1.del_set_size, td1.ptr_delete_data, td1.ptr_delete_pattern,0);
+		printf ("\n\n");
+	}
+	
+// **************** Test Task ********************************************************************************/	
 
 /**************** Task 2(a) *********************/
-/*	*/
-/*	printf ("Testing Task 2(a)...\n");		*/
-/*	*/
-/*	for (i = 1; i<=5; i++){*/
-/*		*/
-/*		printf ("*******************************************\n");*/
-/*		printf ("Testing for data size = %d\n", i*num_data);*/
-/*	*/
-/*		td1 = generate_data(i*num_data, del_set_block_size, del_set_num_blocks);*/
-/*		ht1 = init_hash_table(i*num_data);*/
-/*		test_hash_chain_insert(&ht1, td1.ins_set_size, td1.ptr_insert_data);*/
-/*		printf ("\n\n");*/
-/*		printf ("Testing insert by searching ...\n");*/
-/*		test_hash_chain_search2(&ht1, td1.search_set_size, td1.ptr_search_data, td1.ptr_search_pattern);*/
-/*		printf ("\n\n");*/
-/*	}*/
+	
+	printf ("Testing Task 2(a)...\n");		
+	
+	for (i = 1; i<=5; i++){
+		
+		printf ("*******************************************\n");
+		printf ("Testing for data size = %d\n", i*num_data);
+	
+		td1 = generate_data(i*num_data, del_set_block_size, del_set_num_blocks);
+		ht1 = init_hash_table(i*num_data);
+		test_hash_chain_insert(&ht1, td1.ins_set_size, td1.ptr_insert_data);
+		printf ("\n\n");
+		printf ("Testing insert by searching ...\n");
+		test_hash_chain_search2(&ht1, td1.search_set_size, td1.ptr_search_data, td1.ptr_search_pattern);
+		printf ("\n\n");
+	}
 /*	*/
 
 /**************** Task 2(b) *********************/
 
-/*	printf ("Testing Task 2(b)...\n");*/
-/*			*/
-/*	for (i = 1; i<=6; i++){*/
-/*		*/
-/*		printf ("*******************************************\n");*/
-/*		printf ("Testing for data size = %d\n", i*num_data);*/
-/*	*/
-/*		td1 = generate_data(i*num_data, del_set_block_size, del_set_num_blocks);*/
-/*		ht1 = init_hash_table(i*num_data);*/
-/*		hash_chain_insert(td1.ins_set_size, td1.ptr_insert_data, &ht1);*/
-/*		printf("\n\n\n");*/
-/*		printf("Testing search ....\n");*/
-/*		test_hash_chain_search(&ht1, td1.search_set_size, td1.ptr_search_data, td1.ptr_search_pattern);*/
-/*		*/
-/*		printf("\n\n\n");*/
-/*		printf("Testing delete ....\n");*/
-/*		test_hash_chain_delete(&ht1, td1.del_set_size, td1.ptr_delete_data, td1.ptr_delete_pattern);*/
-/*		*/
-/*		printf ("\n\n\n");*/
-/*	}*/
+	printf ("Testing Task 2(b)...\n");
+			
+	for (i = 1; i<=6; i++){
+		
+		printf ("*******************************************\n");
+		printf ("Testing for data size = %d\n", i*num_data);
+	
+		td1 = generate_data(i*num_data, del_set_block_size, del_set_num_blocks);
+		ht1 = init_hash_table(i*num_data);
+		hash_chain_insert(td1.ins_set_size, td1.ptr_insert_data, &ht1);
+		printf("\n\n\n");
+		printf("Testing search ....\n");
+		test_hash_chain_search(&ht1, td1.search_set_size, td1.ptr_search_data, td1.ptr_search_pattern);
+		
+		printf("\n\n\n");
+		printf("Testing delete ....\n");
+		test_hash_chain_delete(&ht1, td1.del_set_size, td1.ptr_delete_data, td1.ptr_delete_pattern);
+		
+		printf ("\n\n\n");
+	}
 
 
 /**************** Task 2(c) ************************/
@@ -804,8 +978,8 @@ int main(){
 		ht1 = init_hash_table(20);
 		ht2=test_hash_chain_resize_insert(&ht1, td1.ins_set_size, td1.ptr_insert_data);
 		printf ("\n\n");
-/*		printf ("Printing the hash table...\n");*/
-/*		print_hash_table(ht2);*/
+		printf ("Printing the hash table...\n");
+		print_hash_table(ht2);
 		
 		printf ("Testing insert by searching ...\n");
 		test_hash_chain_search2(&ht2, td1.search_set_size, td1.ptr_search_data, td1.ptr_search_pattern);
