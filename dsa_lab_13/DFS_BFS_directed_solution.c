@@ -299,50 +299,28 @@ int* finish_time_order (int order, list_node** adjacency_list){
 /*	Output  i) pointer to a list of components, where each component is given by the list of its vertices.*/
 
 list_node** strong_components(int order, list_node** adjacency_list){
-	
 	int i, j=0;
 	int * ptr_finish;
 	int * ptr_visited;
 	int node_index;
-
 	list_node** reverse_adjacency_list;
 	list_node** ptr_scc;
-	
-	
-	
 	ptr_finish = (int*) calloc (order, sizeof(int));
-
-	
 	ptr_scc = (list_node**) malloc (order * sizeof (list_node*));
-	
 	for (i = 0 ; i < order; i++){
 		ptr_scc[i] = NULL;
 	}
-
-	
-	
-
-	
 	reverse_adjacency_list = (list_node**) malloc (order * sizeof (list_node*));
-	
 	reverse_adjacency_list = get_reverse_adjacency_list (order, adjacency_list);
 	ptr_finish = finish_time_order(order, reverse_adjacency_list);
-	
 	ptr_visited = (int*) calloc(order, sizeof(int));
-
-	
 	for (i = 0 ; i < order; i++){
 		node_index = ptr_finish[i];
 		if (ptr_visited[node_index] == 0){
-
 			ptr_scc[j] = dfs_explore(order, adjacency_list, node_index, ptr_visited);
-			
-		
 		}
 		j++;
-		
 	}
-	
 	return ptr_scc;
 	
 }
@@ -447,26 +425,19 @@ typedef struct {
 }BFS_Data;
 
 BFS_Data BFS(int order, list_node** adjacency_list, int node_index){
-
 	int* ptr_visited;
 	int parent_index, child_index, i, j;
-	
 	list_node** ptr_path_list;
 	list_node* ptr_new_node;
 	list_node* ptr_temp;
-	
 	Queue q;
 	list_node* ptr_child;
 	int* ptr_distance;
 	int* ptr_parent;
 	BFS_Data bfs_lists;
-	
-
 	ptr_distance = (int*) malloc(order* sizeof(int));
 	ptr_parent = (int*) malloc(order* sizeof(int));
 	ptr_path_list = (list_node**) malloc (order* sizeof(list_node*));
-
-	
 	int LARGE_VALUE = 2*order;
 	for (i =0; i < order; i++){
 		ptr_distance[i] = LARGE_VALUE;
@@ -474,13 +445,9 @@ BFS_Data BFS(int order, list_node** adjacency_list, int node_index){
 	for (i = 0; i< order; i++){
 		ptr_parent[i] = -1;
 	}
-
 	q = init_queue();
 	ptr_distance[node_index] = 0;
-	
-	
 	enque(&q, node_index);
-
 	while(q.size != 0){
 		parent_index = deque(&q);
 		ptr_child = adjacency_list[parent_index];
@@ -515,22 +482,17 @@ BFS_Data BFS(int order, list_node** adjacency_list, int node_index){
 /*	   			sequece of nodes of a shortest path from <source_node> to <i>.*/
 
 int sssp(int order, list_node** adjacency_list, int source_index){
-
 	BFS_Data bfs_lists;
 	int d,i,j,k, sp_length;
 	bfs_lists = BFS(order, adjacency_list, source_index);
 	int LARGE_VALUE = 2*order;
 	Stack s;
 	char c;
-	
 	for(i=0; i< order; i++){
 		sp_length = bfs_lists.ptr_sp_length[i];
-		
 		if (sp_length == LARGE_VALUE){
-			
 			printf("There is no path from %d to %d\n", source_index, i);
 		} else {
-			
 			printf ("Distance of %d from source %d = %d\n", i, source_index, sp_length);
 			printf("\n");
 			init(&s);
@@ -539,11 +501,8 @@ int sssp(int order, list_node** adjacency_list, int source_index){
 			}else{
 				push(&s,'a'+i-10);
 			}
-
 			j = bfs_lists.ptr_parent[i];
-			
 			while(j!=-1){
-
 				push(&s, '-');
 				if(j<10){
 					push(&s,'0'+j);
@@ -561,14 +520,10 @@ int sssp(int order, list_node** adjacency_list, int source_index){
 				}
 				printf("%c", c);
 			}
-
-		}
-			
+		}	
 		printf("\n\n");
 	} 
 }
-
-
 /****************************************************************************************************************************************************************/
 
 int main(){

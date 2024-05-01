@@ -221,13 +221,15 @@ int hash_oa_delete(int num_data_items, unsigned int* ptr_data, OA_Hash_Table* pt
 for (int i =0;i< num_data_items; i++){
 		unsigned int num = ptr_data[i];
 		int index= num % ptr_oaht->prime;
-		while (ptr_oaht->ptr_table[index]!= UINT_MAX){
+		int coll=0;
+		while (coll != ptr_oaht->num_collisions){
 			if(ptr_oaht->ptr_table[index]==num){
 				ptr_oaht->ptr_table[index]=UINT_MAX-1;
 				ptr_flag[i]=1;
 				break;
 			}
 			index= (index +1 ) % ptr_oaht->prime;
+			coll++;
 		}
 		}
 return 0;
