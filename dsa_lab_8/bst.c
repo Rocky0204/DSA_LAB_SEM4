@@ -256,7 +256,8 @@ Tree* search(int key, Tree* tree) {
 	// Task 3 Solution
 	while (tree != NULL){
 	if (tree->key == key){
-		return tree;}
+		return tree;
+		}
 		if (key < tree->key){
 		search(key,tree->left);
 		tree=tree->left;

@@ -132,10 +132,27 @@ int i;
 /*In the above example u has at least one neighbour among {v,w,x,y,z}. Similarly v has at least one neighbout among {w,x,y,z}, and so on.*/
 
 /*Input: Order and pointer to the adjacency matrix of the graph.*/
-
+void print_adjMat(int order,int node_index,int** adjMat,int* marked){
+	marked[node_index] = 1;
+	for (int i = 0 ; i < order; i++){
+		if (adjMat[node_index][i] == 1 && marked[i] == 0){
+			print_adjMat(order,i,adjMat,marked);
+			printf("%d ",i);
+		}
+	}
+}
 int print_with_right_neighbour (int order, int** adj_mat){
-
-
+	int* marked = (int*) (malloc(sizeof(int) * order));
+	int i;
+	for (i = 0; i < order; i++){
+		marked[i] = 0;
+	}
+	for(i = 0; i< order; i++){
+		if(marked[i] == 0){
+			print_adjMat(order,i,adj_mat,marked);
+			printf("%d ",i);
+		}
+	}
 	return 0;
 }
 
